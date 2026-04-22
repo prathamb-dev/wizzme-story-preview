@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
-<title>Wizzme · Story (arc · v6)</title>
+<title>Wizzme · Parul Verma GMAT 760</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
@@ -35,11 +35,10 @@ body{
   font-family:var(--sans);
   -webkit-font-smoothing:antialiased;
   font-size:16px;
-  padding-bottom:88px;       /* room for sticky ask button */
+  padding-bottom:88px;
   min-height:100dvh;
 }
 
-/* ========== TOP BAR (sticky) ========== */
 .top{
   position:sticky;top:0;z-index:50;
   display:flex;justify-content:space-between;align-items:center;
@@ -64,23 +63,7 @@ body{
   color:var(--muted);letter-spacing:.14em;text-transform:uppercase;
   padding-left:8px;border-left:1px solid var(--rule);
 }
-.switcher{
-  display:flex;gap:2px;padding:3px;
-  background:var(--paper2);border-radius:7px;
-  border:1px solid rgba(0,0,0,.04);
-}
-.switcher button{
-  border:0;background:transparent;cursor:pointer;
-  font-family:var(--sans);font-weight:600;font-size:12px;
-  color:var(--muted);padding:5px 10px;border-radius:5px;
-  transition:all .15s ease;
-}
-.switcher button.active{
-  background:#fff;color:var(--ink);
-  box-shadow:0 1px 2px rgba(0,0,0,.08);
-}
 
-/* ========== TITLE BAR (compact breadcrumb) ========== */
 .titlebar{
   padding:10px 18px 10px;
   display:flex;align-items:center;gap:10px;
@@ -97,9 +80,7 @@ body{
   display:grid;place-items:center;
   font-size:10px;font-weight:700;font-family:var(--sans);
   border:2px solid var(--paper);margin-right:-7px;
-  letter-spacing:0;
 }
-.tb-meta .av.b{background:var(--accent);}
 .tb-title{
   font-weight:500;font-size:10.5px;
   color:var(--faint);
@@ -109,7 +90,6 @@ body{
   text-transform:uppercase;letter-spacing:.14em;
 }
 
-/* ========== COVER (above the journey — title, sub, before→after) ========== */
 .cover{
   padding:6px 20px 18px;
   background:var(--paper);
@@ -156,142 +136,11 @@ body{
   50%{opacity:1;transform:translateX(3px);}
 }
 
-/* ========== JOURNEY (the arc — flat moment dots, no phase brackets) ========== */
-.journey{
-  position:sticky;top:54px;z-index:30;
-  padding:14px 20px 12px;
-  background:rgba(247,246,242,.96);
-  backdrop-filter:blur(12px);
-  -webkit-backdrop-filter:blur(12px);
+.moment{
+  padding:20px;
   border-top:1px solid var(--rule-soft);
-  border-bottom:1px solid var(--rule-soft);
 }
-.jr-head{
-  display:flex;justify-content:space-between;align-items:baseline;
-  margin-bottom:12px;
-}
-.jr-label{
-  font-family:var(--mono);font-size:10.5px;
-  color:var(--faint);letter-spacing:.15em;text-transform:uppercase;
-  display:flex;align-items:center;gap:7px;
-}
-.jr-label .swipe-hint{
-  color:var(--wz);font-weight:600;letter-spacing:.1em;
-  display:inline-flex;align-items:center;gap:4px;
-  animation:nudge-hint 2s ease-in-out infinite;
-}
-@keyframes nudge-hint{
-  0%,100%{transform:translateX(0);opacity:.7;}
-  50%{transform:translateX(4px);opacity:1;}
-}
-.jr-count{
-  font-family:var(--mono);font-size:10.5px;
-  color:var(--faint);letter-spacing:.08em;
-}
-.jr-strip{position:relative;padding:0 4px;}
-.jr-line{
-  position:absolute;
-  left:14px;right:14px;top:6px;
-  height:1.5px;background:var(--rule);
-  border-radius:999px;
-}
-.jr-line::after{
-  content:'';position:absolute;inset:0;
-  background:linear-gradient(90deg, var(--wz) 0%, var(--wz) var(--prog,0%), transparent var(--prog,0%));
-  border-radius:inherit;
-  transition:all .5s var(--ease);
-}
-.nodes{
-  position:relative;
-  display:grid;
-  z-index:2;
-}
-.node{
-  display:flex;flex-direction:column;align-items:center;
-  gap:7px;
-  border:0;background:transparent;
-  padding:0 2px;cursor:pointer;
-  font-family:inherit;color:inherit;
-  position:relative;
-}
-.node:focus-visible{outline:none;}
-.node-dot{
-  width:12px;height:12px;border-radius:50%;
-  background:var(--paper);
-  border:2px solid var(--rule);
-  transition:all .3s var(--ease);
-}
-.node:hover:not(.active) .node-dot{
-  border-color:var(--ink);transform:scale(1.15);
-}
-.node.active .node-dot{
-  width:16px;height:16px;margin:-2px 0;
-  background:var(--wz);border-color:var(--wz);
-  box-shadow:0 0 0 5px var(--wz-soft);
-}
-.node.passed .node-dot{
-  background:var(--ink);border-color:var(--ink);
-}
-.node-label{
-  font-family:var(--mono);font-size:9.5px;font-weight:500;
-  letter-spacing:.12em;text-transform:uppercase;
-  color:var(--faint);text-align:center;line-height:1.2;
-  max-width:72px;
-  transition:color .2s ease, font-weight .2s ease;
-}
-.node.active .node-label{color:var(--wz);font-weight:700;}
-.node.passed .node-label{color:var(--muted);}
-
-/* ========== STAGE (horizontal scroll-snap — Instagram-style) ========== */
-.stage-wrap{
-  position:relative;
-}
-.edge-fade{
-  position:absolute;top:0;bottom:0;width:22px;
-  pointer-events:none;z-index:2;
-  opacity:0;transition:opacity .3s ease;
-}
-.edge-fade.l{left:0;background:linear-gradient(90deg, var(--paper), transparent);}
-.edge-fade.r{right:0;background:linear-gradient(270deg, var(--paper), transparent);}
-.stage-wrap.has-prev .edge-fade.l{opacity:1;}
-.stage-wrap.has-next .edge-fade.r{opacity:1;}
-.stage{
-  position:relative;
-  display:flex;flex-direction:row;
-  align-items:flex-start;
-  overflow-x:auto;overflow-y:hidden;
-  scroll-snap-type:x mandatory;
-  -webkit-overflow-scrolling:touch;
-  scrollbar-width:none;
-  scroll-snap-stop:always;
-  overscroll-behavior-x:contain;
-  touch-action:pan-x pan-y;
-}
-.stage::-webkit-scrollbar{display:none;}
-
-.pane{
-  flex:0 0 100%;
-  width:100%;
-  scroll-snap-align:start;
-  scroll-snap-stop:always;
-  padding:20px 20px 22px;
-  display:flex;flex-direction:column;
-}
-
-/* --- MOMENT pane --- */
-.pane-moment{gap:0;}
-.mo-trail{
-  display:flex;align-items:center;gap:8px;
-  font-family:var(--mono);font-size:11px;
-  color:var(--faint);letter-spacing:.12em;text-transform:uppercase;
-  margin-bottom:8px;
-}
-.mo-trail .idx{color:var(--wz);font-weight:600;}
-.mo-label{
-  font-family:var(--mono);font-size:11.5px;font-weight:500;
-  color:var(--wz);letter-spacing:.18em;text-transform:uppercase;
-  margin-bottom:8px;
-}
+.moment:first-of-type{border-top:none;}
 .mo-title{
   font-weight:800;font-size:25px;line-height:1.18;
   letter-spacing:-.02em;margin:0 0 14px;color:var(--ink);
@@ -300,89 +149,7 @@ body{
   font-size:16px;line-height:1.58;color:var(--body);
   margin:0 0 18px;
 }
-.mo-quote{
-  border-left:3px solid var(--wz);
-  padding:4px 0 4px 14px;
-  font-weight:700;font-size:17px;line-height:1.35;
-  letter-spacing:-.012em;color:var(--ink);
-  margin:0 0 18px;
-}
-.mo-quote .att{
-  display:block;margin-top:8px;
-  font-family:var(--mono);font-weight:400;font-size:10.5px;
-  color:var(--muted);letter-spacing:.1em;text-transform:uppercase;
-}
-.mo-stat{
-  display:inline-flex;flex-direction:column;
-  background:var(--ink);color:#fff;
-  padding:12px 16px;border-radius:10px;
-  margin:0 0 18px;
-}
-.mo-stat .n{
-  font-weight:900;font-size:22px;letter-spacing:-.022em;line-height:1;
-}
-.mo-stat .l{
-  font-family:var(--mono);font-size:10px;
-  color:rgba(255,255,255,.65);letter-spacing:.1em;
-  margin-top:6px;text-transform:uppercase;
-}
 
-/* --- DROPDOWNS for in-moment sub-content --- */
-.drops{
-  display:flex;flex-direction:column;gap:8px;
-  margin-top:6px;
-}
-.drop{
-  background:var(--paper2);
-  border:1px solid transparent;
-  border-radius:10px;
-  overflow:hidden;
-  transition:background .18s, border-color .18s;
-}
-.drop-head{
-  display:flex;align-items:center;justify-content:space-between;gap:12px;
-  padding:13px 15px;
-  cursor:pointer;
-  font-family:var(--sans);font-weight:600;font-size:15px;line-height:1.4;
-  letter-spacing:-.005em;color:var(--ink);
-  user-select:none;
-}
-.drop-head .chev{
-  flex-shrink:0;
-  font-size:14px;color:var(--muted);
-  transition:transform .25s var(--ease);
-  font-family:var(--mono);font-weight:600;
-}
-.drop.open .chev{transform:rotate(90deg);color:var(--wz);}
-.drop.open{background:#fff;border-color:var(--wz);}
-.drop.open .drop-head{font-weight:700;}
-.drop-body{
-  max-height:0;overflow:hidden;opacity:0;
-  transition:max-height .3s var(--ease), opacity .2s, padding .3s var(--ease);
-  padding:0 15px;
-  font-size:14.5px;line-height:1.5;color:var(--body);
-}
-.drop.open .drop-body{
-  max-height:260px;opacity:1;padding:0 15px 14px;
-}
-.drop-from{
-  font-family:var(--mono);font-size:10px;font-weight:500;
-  color:var(--muted);letter-spacing:.12em;text-transform:uppercase;
-  padding-top:10px;margin-top:10px;
-  border-top:1px solid var(--rule-soft);
-}
-
-.ins-hdr{
-  display:flex;align-items:center;gap:8px;
-  font-family:var(--mono);font-size:10.5px;font-weight:500;
-  color:var(--muted);letter-spacing:.14em;text-transform:uppercase;
-  margin:8px 0 10px;
-}
-.ins-hdr::before{
-  content:'';width:14px;height:1px;background:var(--rule);
-}
-
-/* ========== PERSISTENT ASK (floating) ========== */
 .ask{
   position:fixed;left:14px;right:14px;bottom:14px;z-index:60;
   background:var(--ink);color:#fff;
@@ -392,50 +159,16 @@ body{
   cursor:pointer;
   display:flex;align-items:center;gap:11px;
   box-shadow:0 10px 30px rgba(0,0,0,.22);
-  transition:transform .15s ease, box-shadow .2s ease;
 }
-.ask:hover{transform:translateY(-1px);box-shadow:0 12px 34px rgba(0,0,0,.2);}
-.ask:active{transform:translateY(0);}
-.ask .dot{
-  width:7px;height:7px;background:var(--wz);border-radius:50%;
-  flex-shrink:0;
-  animation:dotPulse 2s ease-in-out infinite;
-  box-shadow:0 0 0 3px rgba(255,61,46,.2);
-}
-@keyframes dotPulse{0%,100%{opacity:1;}50%{opacity:.55;}}
-.ask .label{flex:1;text-align:left;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-.ask .arr{opacity:.6;font-size:16px;}
 
-/* ========== TOAST ========== */
-.toast{
-  position:fixed;bottom:72px;left:50%;
-  transform:translate(-50%,6px);
-  background:var(--ink);color:#fff;
-  padding:10px 16px;border-radius:10px;
-  font-family:var(--sans);font-weight:500;font-size:12.5px;
-  box-shadow:0 10px 28px rgba(0,0,0,.22);
-  opacity:0;pointer-events:none;z-index:200;
-  transition:opacity .2s ease, transform .25s var(--ease);
-  max-width:90vw;text-align:center;
-}
-.toast.show{opacity:1;transform:translate(-50%,0);}
-
-/* ========== RESPONSIVE ========== */
 @media (min-width:640px){
-  body{font-size:17px;padding-bottom:96px;}
-  .top,.titlebar{padding-left:24px;padding-right:24px;}
-  .cover,.journey{padding-left:28px;padding-right:28px;max-width:760px;width:100%;margin:0 auto;}
-  .stage{max-width:760px;width:100%;margin:0 auto;}
-  .pane{padding:26px 28px 28px;}
-  .ask{max-width:760px;left:50%;right:auto;transform:translateX(-50%);width:calc(100% - 40px);}
+  .cover{padding-left:28px;padding-right:28px;max-width:760px;width:100%;margin:0 auto;}
+  .moment{padding:26px 28px;max-width:760px;width:100%;margin:0 auto;}
   .cv-title{font-size:34px;}
   .cv-sub{font-size:17.5px;}
   .cv-arc-text{font-size:15px;}
   .mo-title{font-size:28px;}
   .mo-body{font-size:17px;}
-  .mo-quote{font-size:19px;}
-  .drop-head{font-size:16px;}
-  .drop-body{font-size:15.5px;}
 }
 
 *:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:6px;}
@@ -444,476 +177,58 @@ body{
 <body>
 
 <header class="top">
-  <div class="brand">Wizzme <span class="exp">arc · v6</span></div>
-  <div class="switcher" id="switcher">
-    <button data-story="aryan" class="active">Aryan</button>
-    <button data-story="prathamesh">Prathamesh</button>
-  </div>
+  <div class="brand">Wizzme <span class="exp">Story · GMAT</span></div>
 </header>
 
-<section class="titlebar" id="titlebar"></section>
+<section class="titlebar">
+  <div class="tb-meta">
+    <span class="avs">
+      <span class="av">P</span>
+      <span class="av" style="background:var(--accent);">R</span>
+    </span>
+    <span>PARUL × RAJIT</span>
+  </div>
+  <div class="tb-title">GMAT Journey</div>
+</section>
 
-<section class="cover" id="cover"></section>
+<section class="cover">
+  <h1 class="cv-title">How Parul scored 760 after stopping and restarting prep multiple times</h1>
+  <p class="cv-sub">A working professional's playbook for maintaining momentum through interrupted GMAT prep cycles — and why starting over is not failure.</p>
+  <div class="cv-arc">
+    <div class="cv-arc-side">
+      <div class="cv-arc-label">Before</div>
+      <div class="cv-arc-text">Working professional juggling job with multiple GMAT attempts; motivation dropping after restarts</div>
+    </div>
+    <div class="cv-arc-connector">→</div>
+    <div class="cv-arc-side after">
+      <div class="cv-arc-label">After</div>
+      <div class="cv-arc-text">GMAT 760 (Q50 V44) after final disciplined prep cycle; mentoring others on staying persistent</div>
+    </div>
+  </div>
+</section>
 
-<section class="journey" id="journey"></section>
-
-<div class="stage-wrap" id="stageWrap">
-  <div class="edge-fade l"></div>
-  <div class="edge-fade r"></div>
-  <main class="stage" id="stage"></main>
+<div class="moment">
+  <h2 class="mo-title">Why GMAT prep gets interrupted (and why Parul kept restarting)</h2>
+  <p class="mo-body">Parul came to the session as a working professional — the exact demographic most likely to abandon GMAT prep mid-cycle. Job demands, life events, motivation dips. She had attempted the GMAT multiple times, each restart carrying the emotional weight of 'starting over.' This is the story of how she broke that pattern.</p>
 </div>
 
-<button class="ask" id="askBtn" aria-label="Ask">
-  <span class="dot"></span>
-  <span class="label" id="askLabel">Ask anything about this story</span>
-  <span class="arr">→</span>
-</button>
+<div class="moment">
+  <h2 class="mo-title">How tracking metrics replaced motivation</h2>
+  <p class="mo-body">Rather than rely on willpower to come back after a break, Parul shifted to tracking prep metrics: hours logged, mock scores, weak areas flagged. She stopped asking 'am I feeling motivated?' and started asking 'what do the metrics show I should do next?' This external anchor made restarts feel less like failures and more like data-driven course corrections.</p>
+</div>
 
-<div class="toast" id="toast"></div>
+<div class="moment">
+  <h2 class="mo-title">The 760 came from structure, not inspiration</h2>
+  <p class="mo-body">The final cycle wasn't longer or harder — it was more systematic. Daily prep blocks, weekly mock reviews, clear Q/V targets. No motivation required. Just discipline. When she hit Q50 V44, it wasn't a surprise — the metrics had been tracking toward it for weeks.</p>
+</div>
+
+<button class="ask" id="askBtn">Ask about this story →</button>
 
 <script>
-// ==========================
-// DATA — single bifurcation (flat moments), sub-content via drops[]
-// ==========================
-const stories = {
-  aryan: {
-    meta:{
-      subject:'Aryan Arora', subjectInitial:'A',
-      interviewer:'Ayush Agrawal', interviewerInitial:'Ay',
-      date:'Apr 15, 2026', duration:'23 min', turns:'70 turns'
-    },
-    title:"From a 1 Cr quant shot to a PhD-bound research track at KGP",
-    hook:"Four deliberate years, one intern-season rejection, and a senior's call that landed an ANU research intern — with no published paper.",
-    before:"Year 1 · chasing CGPA for a DepC & quant exit",
-    after:"ANU intern · PhD-bound · now shares the playbook",
-    moments:[
-      {
-        id:'first-year', label:'The Start',
-        title:'First year was about DepC, not research',
-        body:"Aryan came into KGP with Manufacturing Science — a branch he didn't want. Department change was the plan from day one, and it meant CGPA. The previous cutoff was 9.45, so 9.45 became the target. He closed the first year at 9.45, jumped into Mathematics. Research wasn't even on the map yet.",
-        quote:{text:"9.5 was a safe bet. So I just kept it there.", attrib:"Aryan"},
-        drops:[
-          {id:'safe-bet', label:"Aim at the cutoff, not the ceiling", body:"When the game is clearly scored, aim at the cutoff + a small safety margin — not at the ceiling.", from:"Reading Aryan's first-year play"}
-        ]
-      },
-      {
-        id:'quant-chase', label:'The Detour',
-        title:'Second year: chasing quant like everyone else in Math',
-        body:"Once in Math, the default career became quant. Seniors pointed to 1 Cr packages and it felt like a short walk. Aryan didn't love DSA, but he figured quant was different — problem-solving, mathematical, well-paid. He kept the CGPA grind, ~95% attendance, rehearsed midsems. Not for research yet — because quant shops used CGPA as a first filter.",
-        stat:{n:"~95%", l:"class attendance, year 2"},
-        drops:[
-          {id:'cgpa-infra', label:"Abandoned paths leave infra behind", body:"Even paths you later abandon leave infrastructure behind. CGPA bought for quant ended up paying for research.", from:"In hindsight"}
-        ]
-      },
-      {
-        id:'cdc-walkout', label:'The Pivot',
-        title:"The intern season that broke the quant plan",
-        body:"Third-year intern season came. Aryan hadn't done DSA prep. His only plan was quant prob-stat rounds. When quant didn't happen — heartbreak, unprepared, unwilling to reverse-engineer his life around DSA — he walked out after Day 1 of CDC. He'd taken a stochastic process course; that prof had offered a project. A friend pointed him at a young CS prof doing ML. The new goal: land an international research intern and make not sitting for placements survivable.",
-        quote:{text:"I was very clear from day one — why am I even going for placements? Just a backup.", attrib:"Aryan"},
-        drops:[
-          {id:'real-backup', label:"Backup plans have to be actual plans", body:"If you haven't prepared for one, you don't have a backup — you have a fantasy.", from:"The intern-season lesson"},
-          {id:'young-prof', label:"Pick a young prof for your first project", body:"More undergrads on their team, more available, research interests haven't ossified yet.", from:"Aryan's rule"}
-        ]
-      },
-      {
-        id:'anu-opening', label:'The Opening',
-        title:'How the ANU intern actually happened',
-        body:"He applied to ANU, EPFL, ETH, Aalto, IST Austria. No published paper. The decisive edge wasn't the CV — it was access to information. A senior, Rishabh, had gone through ANU under a related prof. A call the night before Aryan's interview laid out the unwritten rules: how KGP shortlists first, how the prof then picks from that shortlist, how to map his background to the professor's actual project.",
-        stat:{n:"$8,500", l:"FRT grant — removed funding as a blocker"},
-        drops:[
-          {id:'senior-context', label:"One senior with context beats ten with advice", body:"The prep call mattered more than any cold email. Context compounds.", from:"How Rishabh actually helped"},
-          {id:'prof-shortlist', label:"The real filter is the prof's past shortlists", body:"Not your CV. Map your background to their actual project, not the other way around.", from:"The unwritten ANU rule"}
-        ]
-      },
-      {
-        id:'australia-pov', label:'The Wider Lens',
-        title:'Australia made the PhD feel non-negotiable',
-        body:"In Canberra he worked under Prof. Malcolm Sambridge extending the CoFI inverse-modeling library beyond geoscience. The bigger thing wasn't the project — it was the people. Lab-mates with three research interns and PhD offers from Japan, Singapore, Imperial before arriving at ANU. A research associate with a Berkeley PhD and a Caltech post-doc, quietly doing the work in Australia.",
-        quote:{text:"Research outside India pays. Once you leave, the narrative flips.", attrib:"Paraphrased"},
-        drops:[
-          {id:'exposure-not-talent', label:"The gap is exposure, not talent", body:"The distance between KGP's research-serious juniors and what's out there is mostly exposure.", from:"Aryan's Canberra read"}
-        ]
-      },
-      {
-        id:'senior-sharing', label:'The Loop',
-        title:'Becoming the senior who shares',
-        body:"He came back knowing two things. One: research outside India pays. Two: the gap between KGP's research-serious juniors and what's out there is mostly exposure, not talent. Which is why he now forwards notes, shares rubrics, introduces juniors to seniors. The thing he got from Rishabh, he's trying to not gatekeep.",
-        drops:[
-          {id:'democratize', label:"Democratising Rishabh-access solves half the problem", body:"For anyone from KGP — the bottleneck is access to seniors with context, not talent.", from:"Aryan's thesis"}
-        ]
-      }
-    ]
-  },
-
-  prathamesh: {
-    meta:{
-      subject:'Prathamesh Baisware', subjectInitial:'P',
-      interviewer:'Ayush Agrawal', interviewerInitial:'Ay',
-      date:'Apr 18, 2026', duration:'40 min', turns:'140 turns'
-    },
-    title:"From a 2-sharing PG to a zero-brokerage Koramangala 1BHK",
-    hook:"Three months of PG fatigue became a self-taught Bangalore housing playbook — and a rule that changed everything.",
-    before:"Fresh to BLR · 2-sharing PG · 25 listings deep",
-    after:"Standalone 1BHK · zero brokerage · owners, not portals",
-    moments:[
-      {
-        id:'pg-fine', label:'The Setup',
-        title:'PG was fine on paper, wrong in practice',
-        body:"Prathamesh moved into a 2-sharing PG close to the office — the classic first-move setup. Furniture, meals, company, everything handled. Two or three months in it stopped working. Not for any dramatic reason. The PG was well-equipped, but the environment around it didn't have the quiet and the space he actually needed after a workday. He wanted to be able to close a door.",
-        quote:{text:"It was well furnished, well equipped. But in general, the environment was not that good.", attrib:"Prathamesh"},
-        drops:[
-          {id:'env-not-amenity', label:"Environment beats amenities", body:"PGs solve the physical problem, not the living one.", from:"Why first moves in BLR often don't stick"}
-        ]
-      },
-      {
-        id:'standalone', label:'The Search',
-        title:'The 1BHK hunt that taught him what Koramangala actually wants',
-        body:"The first move was into a standalone building, not a gated society — cheaper, more character, in a part of Koramangala that felt right on the walk-through. Clean, quiet, well-connected. One kilometre to office, one kilometre to badminton class. He lived there about a year before round two. This is the phase where most people burn weeks on 99acres and broker WhatsApp numbers. He'd tried both. 25 listings deep, nothing was converting in Koramangala 4 or 5.",
-        stat:{n:"~25", l:"listings tried before pivoting"},
-        drops:[
-          {id:'standalone-char', label:"Standalone beats gated in the right pocket", body:"On character and price both, in specific Koramangala pockets.", from:"Prathamesh's filter takeaway"},
-          {id:'area-first', label:"Filter by area first, not by amenity", body:"Each pocket has its own rules. Amenity filters flatten what's actually different.", from:"What 25 failed listings taught"}
-        ]
-      },
-      {
-        id:'owner-ask', label:'The Unlock',
-        title:'The pivot was asking owners, not platforms',
-        body:"One day he stopped filtering through services and just asked a homeowner directly if he could come look. That single switch — from \"show me what's available\" to \"is this place open\" — ended the search. He got a deal he'd never have surfaced through the portals. His takeaway for anyone moving to Bangalore: use the zero-brokerage WhatsApp aggregators as a long-tail feed, not a search engine. Filter by area first, then walk the block.",
-        quote:{text:"Zero-brokerage aggregators are a feed, not a search engine. Filter by area, then go walk the block.", attrib:"Prathamesh"},
-        drops:[
-          {id:'feed-not-search', label:"Aggregators are a feed, not a search engine", body:"Scan them like a feed. Don't query them like a database.", from:"The core Bangalore-housing insight"}
-        ]
-      }
-    ]
-  }
-};
-
-// ==========================
-// STATE
-// ==========================
-let currentStory = 'aryan';
-let currentPaneIdx = 0; // 0..N-1 (direct index into moments[])
-let openDrop = null;
-
-const $ = id => document.getElementById(id);
-const esc = s => String(s).replace(/[&<>"']/g, c=>({
-  '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
-}[c]));
-
-function moments(){ return stories[currentStory].moments; }
-function countDrops(s){
-  return s.moments.reduce((a,m)=>a + (m.drops||[]).length, 0);
-}
-
-// ==========================
-// RENDER: TITLE BAR
-// ==========================
-function renderTitleBar(){
-  const s = stories[currentStory];
-  const m = s.meta;
-  const short = `${m.subject.split(' ')[0]} × ${m.interviewer.split(' ')[0]}`;
-  $('titlebar').innerHTML = `
-    <div class="tb-meta">
-      <span class="avs">
-        <span class="av">${esc(m.subjectInitial)}</span>
-        <span class="av b">${esc(m.interviewerInitial)}</span>
-      </span>
-      <span>${esc(short)}</span>
-    </div>
-    <div class="tb-title">${esc(m.date)} · ${esc(m.duration)} · ${esc(m.turns)}</div>
-  `;
-}
-
-// ==========================
-// RENDER: COVER (title + hook + before→after — fixed above journey)
-// ==========================
-function renderCover(){
-  const s = stories[currentStory];
-  $('cover').innerHTML = `
-    <h1 class="cv-title">${esc(s.title)}</h1>
-    <p class="cv-sub">${esc(s.hook)}</p>
-    <div class="cv-arc">
-      <div class="cv-arc-side">
-        <div class="cv-arc-label">Before</div>
-        <div class="cv-arc-text">${esc(s.before || '')}</div>
-      </div>
-      <div class="cv-arc-connector">→</div>
-      <div class="cv-arc-side after">
-        <div class="cv-arc-label">After</div>
-        <div class="cv-arc-text">${esc(s.after || '')}</div>
-      </div>
-    </div>
-  `;
-}
-
-// ==========================
-// RENDER: JOURNEY (flat moment dots — no phase brackets)
-// ==========================
-function renderJourney(){
-  const s = stories[currentStory];
-  const n = moments().length;
-  const gridCols = `repeat(${n}, 1fr)`;
-  const nodesHtml = moments().map((m, i) => `
-    <button class="node" data-idx="${i}" type="button" aria-label="${esc(m.label)}">
-      <span class="node-dot"></span>
-      <span class="node-label">${esc(m.label)}</span>
-    </button>
-  `).join('');
-
-  $('journey').innerHTML = `
-    <div class="jr-head">
-      <div class="jr-label">
-        The journey
-        <span class="swipe-hint">· swipe →</span>
-      </div>
-      <div class="jr-count">${n} moments · ${countDrops(s)} insights</div>
-    </div>
-    <div class="jr-strip">
-      <div class="jr-line" id="jrLine"></div>
-      <div class="nodes" style="grid-template-columns:${gridCols}">${nodesHtml}</div>
-    </div>
-  `;
-
-  $('journey').querySelectorAll('.node').forEach(btn => {
-    btn.addEventListener('click', e => {
-      e.stopPropagation();
-      const i = Number(btn.dataset.idx);
-      scrollToIndex(i);
-    });
-  });
-}
-
-// ==========================
-// RENDER: PANES (moments only, no overview)
-// ==========================
-function renderPanes(){
-  const s = stories[currentStory];
-  const total = moments().length;
-
-  const panesHtml = moments().map((m, i) => {
-    const dropsHtml = (m.drops || []).map(d => `
-      <div class="drop" data-drop="${esc(d.id)}">
-        <div class="drop-head">
-          <span>${esc(d.label)}</span>
-          <span class="chev">›</span>
-        </div>
-        <div class="drop-body">
-          <div>${esc(d.body)}</div>
-          <div class="drop-from">${esc(d.from)}</div>
-        </div>
-      </div>
-    `).join('');
-
-    return `
-      <section class="pane pane-moment" data-idx="${i}" data-mid="${esc(m.id)}">
-        <div class="mo-trail">
-          <span class="idx">Moment ${i+1}</span>
-          <span>/ ${total}</span>
-        </div>
-        <div class="mo-label">${esc(m.label)}</div>
-        <h2 class="mo-title">${esc(m.title)}</h2>
-        <p class="mo-body">${esc(m.body)}</p>
-        ${m.quote ? `<blockquote class="mo-quote">"${esc(m.quote.text)}"<span class="att">— ${esc(m.quote.attrib)}</span></blockquote>` : ''}
-        ${m.stat ? `<div class="mo-stat"><span class="n">${esc(m.stat.n)}</span><span class="l">${esc(m.stat.l)}</span></div>` : ''}
-        ${(m.drops && m.drops.length) ? `
-          <div class="ins-hdr">${m.drops.length} insight${m.drops.length>1?'s':''} — tap to expand</div>
-          <div class="drops">${dropsHtml}</div>
-        ` : ''}
-      </section>
-    `;
-  }).join('');
-
-  $('stage').innerHTML = panesHtml;
-
-  // Drop click → expand/collapse (one open per pane)
-  $('stage').querySelectorAll('.drop-head').forEach(head => {
-    head.addEventListener('click', e => {
-      e.stopPropagation();
-      const drop = head.closest('.drop');
-      const pane = drop.closest('.pane');
-      const wasOpen = drop.classList.contains('open');
-      pane.querySelectorAll('.drop').forEach(x => x.classList.remove('open'));
-      if (!wasOpen) drop.classList.add('open');
-      openDrop = wasOpen ? null : drop.dataset.drop;
-    });
-  });
-}
-
-// ==========================
-// SCROLL → STATE SYNC (scroll-driven; more reliable than IO with nested scrolls)
-// ==========================
-function setupScrollSync(){
-  const stage = $('stage');
-  let rafId = null;
-  const onScroll = () => {
-    if (rafId) return;
-    rafId = requestAnimationFrame(() => {
-      rafId = null;
-      const w = stage.clientWidth;
-      if (!w) return;
-      const idx = Math.round(stage.scrollLeft / w);
-      if (idx !== currentPaneIdx) {
-        currentPaneIdx = idx;
-        applyJourneyState();
-      }
-    });
-  };
-  stage.addEventListener('scroll', onScroll, { passive: true });
-}
-
-function scrollToIndex(i){
-  const stage = $('stage');
-  const w = stage.clientWidth;
-  // Update state first — programmatic scrolls don't reliably fire scroll events
-  currentPaneIdx = i;
-  applyJourneyState();
-  // Vertical: ensure journey row is just below top bar
-  const journey = $('journey');
-  const jrRect = journey.getBoundingClientRect();
-  const topBar = document.querySelector('.top');
-  const topBarH = topBar ? topBar.offsetHeight : 54;
-  const needVertical = jrRect.top > topBarH + 20 || jrRect.top < 0;
-  if (needVertical) {
-    const target = window.scrollY + jrRect.top - topBarH;
-    window.scrollTo({ top: target, behavior: 'smooth' });
-  }
-  // Horizontal: use instant (browser smooth-scroll on elements is unreliable
-  // once a window-level smooth scroll is mid-flight). Feels fine — it's a jump-to.
-  const doHoriz = () => stage.scrollTo({ left: i * w, behavior: 'instant' });
-  if (needVertical) setTimeout(doHoriz, 280); else doHoriz();
-}
-
-// ==========================
-// APPLY JOURNEY STATE (dots, line, ask label)
-// ==========================
-function applyJourneyState(){
-  const i = currentPaneIdx;
-  const n = moments().length;
-
-  document.querySelectorAll('.node').forEach((node, ni) => {
-    node.classList.remove('active','passed');
-    if (ni < i) node.classList.add('passed');
-    if (ni === i) node.classList.add('active');
-  });
-
-  const line = $('jrLine');
-  if (line) {
-    const prog = n === 0 ? 0 : (i + 0.5) / n * 100;
-    line.style.setProperty('--prog', prog + '%');
-  }
-
-  const wrap = $('stageWrap');
-  wrap.classList.toggle('has-prev', i > 0);
-  wrap.classList.toggle('has-next', i < n - 1);
-
-  const m = moments()[i];
-  $('askLabel').textContent = m ? `Ask about "${m.title}"` : 'Ask about this story';
-}
-
-// ==========================
-// NAVIGATION (keyboard)
-// ==========================
-document.addEventListener('keydown', e => {
-  const n = moments().length;
-  if (e.key === 'ArrowRight') {
-    e.preventDefault();
-    scrollToIndex(Math.min(currentPaneIdx + 1, n - 1));
-  } else if (e.key === 'ArrowLeft') {
-    e.preventDefault();
-    scrollToIndex(Math.max(currentPaneIdx - 1, 0));
-  } else if (e.key === 'Escape') {
-    scrollToIndex(0);
-  }
-});
-
-// ==========================
-// TEACH-IN NUDGE (peek right on first load so user sees swipe works)
-// ==========================
-function teachNudge(){
-  const stage = $('stage');
-  if (localStorage.getItem('wz-v6-nudged-flat') === '1') return;
-  if (moments().length === 0) return;
-  setTimeout(() => {
-    if (stage.scrollLeft > 10) return;
-    let peek = 0;
-    const anim = () => {
-      peek += 6;
-      stage.scrollLeft = peek;
-      if (peek < 56) requestAnimationFrame(anim);
-      else {
-        setTimeout(() => {
-          let back = 56;
-          const anim2 = () => {
-            back -= 6;
-            stage.scrollLeft = Math.max(0, back);
-            if (back > 0) requestAnimationFrame(anim2);
-          };
-          anim2();
-        }, 320);
-      }
-    };
-    requestAnimationFrame(anim);
-    localStorage.setItem('wz-v6-nudged-flat', '1');
-  }, 900);
-}
-
-// ==========================
-// STORY SWITCH
-// ==========================
-$('switcher').addEventListener('click', e => {
-  if (e.target.tagName !== 'BUTTON') return;
-  const id = e.target.dataset.story;
-  if (id === currentStory) return;
-  currentStory = id;
-  openDrop = null;
-  currentPaneIdx = 0;
-  $('switcher').querySelectorAll('button').forEach(b =>
-    b.classList.toggle('active', b.dataset.story === id));
-  boot();
-});
-
-// ==========================
-// ASK
-// ==========================
-$('askBtn').addEventListener('click', () => toast($('askLabel').textContent));
-
-// ==========================
-// TOAST
-// ==========================
-let toastTimer = null;
-function toast(msg){
-  const t = $('toast');
-  t.textContent = msg;
-  t.classList.add('show');
-  clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => t.classList.remove('show'), 1800);
-}
-
-// ==========================
-// BOOT
-// ==========================
-function boot(){
-  renderTitleBar();
-  renderCover();
-  renderJourney();
-  renderPanes();
-  $('stage').scrollTo({ left: 0, behavior: 'auto' });
-  currentPaneIdx = 0;
-  setupScrollSync();
-  applyJourneyState();
-  teachNudge();
-}
-boot();
-
-// Resize: keep pane alignment
-let resizeTimer = null;
-window.addEventListener('resize', () => {
-  clearTimeout(resizeTimer);
-  resizeTimer = setTimeout(() => {
-    const stage = $('stage');
-    stage.scrollTo({ left: currentPaneIdx * stage.clientWidth, behavior: 'auto' });
-  }, 120);
+document.getElementById('askBtn').addEventListener('click', () => {
+  alert('In a full implementation, this would open an AI chat interface about Parul\'s story.');
 });
 </script>
+
 </body>
 </html>
