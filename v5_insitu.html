@@ -1,0 +1,1033 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<title>Wizzme · Story (in-situ experiment)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#0a0a0a;
+  --body:#2a2a2a;
+  --muted:#6b6b6b;
+  --faint:#9a9a9a;
+  --paper:#f7f6f2;
+  --paper2:#efeee8;
+  --paper3:#e6e4dc;
+  --rule:#d4d4ce;
+  --rule-soft:#eaeae4;
+  --accent:#5b3df6;
+  --accent-soft:#ece7ff;
+  --wz:#ff3d2e;
+  --wz-soft:#ffe4e0;
+  --sans:'Inter','-apple-system',sans-serif;
+  --mono:'IBM Plex Mono','SF Mono',monospace;
+  --ease:cubic-bezier(.2,.65,.25,1);
+}
+
+*{box-sizing:border-box;}
+html,body{height:100%;margin:0;}
+body{
+  background:var(--paper);
+  color:var(--ink);
+  font-family:var(--sans);
+  -webkit-font-smoothing:antialiased;
+  overflow:hidden;
+  display:flex;flex-direction:column;
+  font-size:15px;
+  height:100dvh;
+}
+
+/* ========== TOP BAR ========== */
+.top{
+  flex-shrink:0;
+  display:flex;justify-content:space-between;align-items:center;
+  padding:10px 16px;
+  border-bottom:1px solid rgba(0,0,0,.05);
+  background:rgba(247,246,242,.9);
+  backdrop-filter:blur(14px);
+  -webkit-backdrop-filter:blur(14px);
+  z-index:5;
+}
+.brand{
+  display:flex;align-items:center;gap:9px;
+  font-weight:800;font-size:14.5px;letter-spacing:-.01em;
+}
+.brand::before{
+  content:'W';width:24px;height:24px;border-radius:6px;
+  background:var(--ink);color:#fff;
+  display:grid;place-items:center;
+  font-weight:900;font-size:11px;
+}
+.brand .exp{
+  font-family:var(--mono);font-size:9.5px;font-weight:500;
+  color:var(--muted);letter-spacing:.14em;text-transform:uppercase;
+  padding-left:8px;border-left:1px solid var(--rule);
+}
+.switcher{
+  display:flex;gap:2px;padding:3px;
+  background:var(--paper2);border-radius:7px;
+  border:1px solid rgba(0,0,0,.04);
+}
+.switcher button{
+  border:0;background:transparent;cursor:pointer;
+  font-family:var(--sans);font-weight:600;font-size:12px;
+  color:var(--muted);padding:5px 10px;border-radius:5px;
+  transition:all .15s ease;
+}
+.switcher button.active{
+  background:#fff;color:var(--ink);
+  box-shadow:0 1px 2px rgba(0,0,0,.08);
+}
+
+/* ========== STORY HEAD (compact, compresses when something is expanded) ========== */
+.story-head{
+  flex-shrink:0;
+  padding:14px 16px 12px;
+  border-bottom:1px solid var(--rule-soft);
+  transition:padding .35s var(--ease);
+}
+.meta-row{
+  display:flex;align-items:center;gap:10px;
+  font-family:var(--mono);font-size:10px;
+  color:var(--muted);letter-spacing:.14em;text-transform:uppercase;
+  margin-bottom:8px;
+}
+.meta-row .avs{display:flex;margin-right:-2px;}
+.meta-row .av{
+  width:18px;height:18px;border-radius:50%;
+  background:var(--ink);color:#fff;
+  display:grid;place-items:center;
+  font-size:9px;font-weight:700;font-family:var(--sans);
+  border:2px solid var(--paper);margin-right:-6px;
+  letter-spacing:0;
+}
+.meta-row .av.b{background:var(--accent);}
+.story-title{
+  font-weight:800;font-size:18px;line-height:1.25;
+  letter-spacing:-.012em;margin:0;
+  max-height:80px;overflow:hidden;
+  transition:font-size .35s var(--ease), max-height .35s var(--ease);
+}
+body.focused .story-head{padding:8px 16px 6px;}
+body.focused .story-title{font-size:13px;max-height:20px;font-weight:700;}
+body.focused .meta-row{margin-bottom:4px;}
+
+/* ========== JOURNEY ========== */
+.journey{
+  flex:1;min-height:0;
+  display:flex;flex-direction:column;
+  padding:8px 12px;gap:6px;
+  overflow:hidden;
+  position:relative;
+}
+
+/* ---- PHASE ---- */
+.phase{
+  background:#fff;
+  border:1px solid var(--rule-soft);
+  border-radius:13px;
+  flex:1 1 0;
+  min-height:48px;
+  display:flex;flex-direction:column;
+  overflow:hidden;
+  cursor:pointer;
+  transition:flex .45s var(--ease),
+             background .3s var(--ease),
+             border-color .3s var(--ease),
+             box-shadow .3s var(--ease),
+             min-height .3s var(--ease);
+}
+.phase:hover:not(.expanded){border-color:var(--rule);}
+.phase.expanded{
+  flex:6 1 0;
+  cursor:default;
+  background:#fff;
+  border-color:rgba(10,10,10,.2);
+  box-shadow:0 6px 22px rgba(10,10,10,.05);
+}
+.phase.sib{
+  flex:0 0 48px;
+  min-height:48px;
+  background:var(--paper2);
+  cursor:pointer;
+}
+.phase.sib:hover{background:var(--paper3);}
+
+.phase-head{
+  display:flex;align-items:center;gap:10px;
+  padding:11px 14px 8px;
+  flex-shrink:0;
+}
+.phase.sib .phase-head{padding:13px 14px;}
+.phase-num{
+  font-family:var(--mono);font-size:9.5px;font-weight:500;
+  color:var(--accent);background:var(--accent-soft);
+  padding:3px 7px;border-radius:5px;
+  letter-spacing:.1em;text-transform:uppercase;white-space:nowrap;
+}
+.phase-title{
+  flex:1;font-weight:800;font-size:15.5px;line-height:1.2;
+  letter-spacing:-.01em;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+}
+.phase.expanded .phase-title{white-space:normal;}
+.phase-count{
+  font-family:var(--mono);font-size:10px;font-weight:500;
+  color:var(--muted);letter-spacing:.04em;white-space:nowrap;
+}
+.phase-chev{
+  color:var(--faint);font-size:12px;
+  transition:transform .3s var(--ease);
+  font-weight:400;
+}
+.phase.expanded .phase-chev{transform:rotate(180deg);color:var(--ink);}
+
+/* Phase dek — VISIBLE BY DEFAULT (the fix for empty-card syndrome) */
+.phase-sub{
+  font-size:12.5px;color:var(--muted);
+  padding:0 14px 8px;margin:0;line-height:1.4;
+  letter-spacing:-.003em;
+  transition:opacity .25s var(--ease), max-height .3s var(--ease), padding .25s var(--ease);
+  overflow:hidden;
+}
+.phase.sib .phase-sub{max-height:0;opacity:0;padding:0 14px;}
+
+/* Moment preview pills (shown in default / collapsed phase) */
+.phase-preview{
+  flex:1;min-height:0;
+  display:flex;gap:6px;flex-wrap:wrap;
+  padding:0 10px 10px;
+  align-content:flex-start;
+  transition:opacity .22s var(--ease), max-height .3s var(--ease);
+}
+.phase.expanded .phase-preview{
+  max-height:0;opacity:0;padding:0;overflow:hidden;pointer-events:none;
+}
+.phase.sib .phase-preview{display:none;}
+
+.moment-pill{
+  flex:1 1 140px;min-width:0;
+  display:flex;flex-direction:column;gap:3px;
+  padding:9px 11px 10px;
+  background:var(--paper2);
+  border:1px solid transparent;
+  border-radius:9px;
+  cursor:pointer;
+  text-align:left;
+  font-family:inherit;
+  transition:background .15s ease, border-color .15s ease, transform .1s ease;
+}
+.moment-pill:hover{background:#fff;border-color:var(--rule);}
+.moment-pill:active{transform:scale(.98);}
+.moment-pill .pill-label{
+  display:flex;align-items:center;gap:6px;
+  font-family:var(--mono);font-size:9px;font-weight:500;
+  color:var(--wz);letter-spacing:.14em;text-transform:uppercase;
+  line-height:1;
+}
+.moment-pill .pill-num{
+  background:var(--ink);color:#fff;
+  padding:2px 5px;border-radius:3px;
+  font-size:8.5px;letter-spacing:.05em;
+}
+.moment-pill .pill-title{
+  font-weight:700;font-size:12.5px;line-height:1.3;
+  letter-spacing:-.005em;color:var(--ink);
+  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;
+  overflow:hidden;
+}
+.moment-pill .pill-ins{
+  margin-top:auto;padding-top:4px;
+  display:flex;align-items:center;gap:4px;
+  font-family:var(--mono);font-size:9px;
+  color:var(--faint);letter-spacing:.06em;
+}
+.moment-pill .pill-ins .d{
+  width:4px;height:4px;border-radius:50%;
+  background:var(--accent);opacity:.55;
+}
+
+.phase-body{
+  flex:1;min-height:0;
+  padding:0 10px 10px;
+  display:flex;flex-direction:column;gap:5px;
+  opacity:0;pointer-events:none;
+  max-height:0;overflow:hidden;
+  transition:opacity .22s .08s var(--ease), max-height .35s var(--ease);
+}
+.phase.expanded .phase-body{
+  opacity:1;pointer-events:auto;max-height:none;
+}
+
+/* ---- MOMENT ---- */
+.moment{
+  background:var(--paper2);
+  border:1px solid transparent;
+  border-radius:10px;
+  flex:1 1 0;
+  min-height:44px;
+  display:flex;flex-direction:column;
+  overflow:hidden;
+  cursor:pointer;
+  transition:flex .4s var(--ease),
+             background .25s var(--ease),
+             border-color .25s var(--ease),
+             min-height .25s var(--ease);
+}
+.moment:hover:not(.expanded){background:var(--paper3);}
+.moment.expanded{
+  flex:6 1 0;
+  background:#fff;
+  border-color:rgba(10,10,10,.18);
+  cursor:default;
+}
+.moment.sib{
+  flex:0 0 42px;
+  min-height:42px;
+  background:var(--paper3);
+}
+
+.moment-head{
+  display:flex;align-items:center;gap:10px;
+  padding:10px 12px;
+  flex-shrink:0;
+  min-height:42px;
+}
+.moment-num{
+  font-family:var(--mono);font-size:10.5px;font-weight:500;
+  color:#fff;background:var(--ink);
+  width:24px;height:24px;border-radius:5px;
+  display:grid;place-items:center;
+  letter-spacing:.04em;flex-shrink:0;
+}
+.moment-head-text{flex:1;min-width:0;}
+.moment-label{
+  display:block;
+  font-family:var(--mono);font-size:8.5px;font-weight:500;
+  color:var(--wz);letter-spacing:.16em;text-transform:uppercase;
+  margin-bottom:2px;line-height:1;
+}
+.moment-title{
+  font-weight:700;font-size:13.5px;line-height:1.3;
+  letter-spacing:-.005em;margin:0;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+}
+.moment.expanded .moment-title{white-space:normal;font-size:16px;letter-spacing:-.015em;}
+.moment-pips{display:flex;gap:3px;flex-shrink:0;}
+.moment-pips .pip{
+  width:5px;height:5px;border-radius:50%;
+  background:var(--accent);opacity:.55;
+}
+.moment.sib .moment-label{display:none;}
+
+.moment-body{
+  flex:1;min-height:0;
+  padding:0 12px 12px;
+  overflow-y:auto;
+  -webkit-overflow-scrolling:touch;
+  opacity:0;pointer-events:none;
+  transition:opacity .25s .12s var(--ease);
+  font-size:13px;line-height:1.55;color:var(--body);
+}
+.moment.expanded .moment-body{opacity:1;pointer-events:auto;}
+.moment-body p{margin:0 0 10px;}
+.moment-quote{
+  margin:10px 0;padding:2px 0 2px 12px;
+  border-left:2.5px solid var(--wz);
+  font-weight:700;font-size:14.5px;line-height:1.35;
+  letter-spacing:-.012em;color:var(--ink);
+}
+.moment-quote .att{
+  display:block;margin-top:6px;
+  font-family:var(--mono);font-weight:400;font-size:9.5px;
+  color:var(--muted);letter-spacing:.1em;text-transform:uppercase;
+}
+.moment-stat{
+  display:inline-flex;flex-direction:column;
+  background:var(--ink);color:#fff;
+  padding:10px 14px;border-radius:8px;
+  margin:8px 0;
+}
+.moment-stat .n{
+  font-weight:900;font-size:20px;letter-spacing:-.022em;line-height:1;
+}
+.moment-stat .l{
+  font-family:var(--mono);font-size:9px;
+  color:rgba(255,255,255,.65);letter-spacing:.1em;
+  margin-top:5px;text-transform:uppercase;
+}
+
+/* ---- INSIGHTS (inside expanded moment) ---- */
+.insights{
+  margin-top:10px;padding-top:10px;
+  border-top:1px solid var(--rule-soft);
+}
+.insights-hdr{
+  font-family:var(--mono);font-size:9.5px;font-weight:500;
+  color:var(--muted);letter-spacing:.14em;text-transform:uppercase;
+  margin-bottom:7px;
+}
+.insight{
+  background:var(--paper2);
+  border:1px solid transparent;
+  border-radius:8px;
+  padding:9px 12px;margin-bottom:5px;
+  cursor:pointer;
+  transition:background .18s, border-color .18s, padding .25s var(--ease);
+}
+.insight:hover{background:#fff;border-color:var(--rule);}
+.insight.expanded{
+  background:#fff;
+  border-color:var(--wz);
+  padding:12px 14px;
+  cursor:default;
+}
+.insight-text{
+  font-weight:600;font-size:12.5px;line-height:1.42;
+  letter-spacing:-.003em;margin:0;
+  color:var(--ink);
+}
+.insight.expanded .insight-text{font-size:13.5px;font-weight:700;}
+.insight-body{
+  max-height:0;overflow:hidden;
+  transition:max-height .3s var(--ease), margin-top .3s var(--ease), opacity .2s;
+  opacity:0;
+}
+.insight.expanded .insight-body{
+  max-height:200px;margin-top:10px;opacity:1;
+  transition:max-height .3s var(--ease), margin-top .3s var(--ease), opacity .25s .1s;
+}
+.insight-from{
+  font-family:var(--mono);font-size:9px;font-weight:500;
+  color:var(--muted);letter-spacing:.12em;text-transform:uppercase;
+  margin-bottom:9px;padding-bottom:8px;
+  border-bottom:1px solid var(--rule-soft);
+}
+.insight-acts{display:flex;gap:6px;}
+.insight-acts button{
+  border:1px solid var(--rule);background:#fff;
+  font-family:var(--sans);font-weight:600;font-size:11px;
+  color:var(--ink);padding:6px 11px;border-radius:6px;
+  cursor:pointer;transition:all .15s ease;
+}
+.insight-acts button:hover{border-color:var(--ink);}
+.insight-acts button.saved{
+  background:var(--wz);border-color:var(--wz);color:#fff;
+}
+
+/* ---- MOMENT-LEVEL ACTIONS ---- */
+.moment-acts{
+  display:flex;gap:6px;margin-top:12px;
+  padding-top:10px;border-top:1px solid var(--rule-soft);
+}
+.moment-acts button{
+  flex:1;
+  border:1px solid var(--rule);background:#fff;
+  font-family:var(--sans);font-weight:600;font-size:12px;
+  color:var(--ink);padding:8px 12px;border-radius:7px;
+  cursor:pointer;transition:all .15s ease;
+}
+.moment-acts button:hover{border-color:var(--ink);}
+.moment-acts button.saved{background:var(--wz);border-color:var(--wz);color:#fff;}
+
+/* ========== PERSISTENT ASK ========== */
+.ask{
+  flex-shrink:0;
+  margin:6px 12px 12px;
+  background:var(--ink);color:#fff;
+  padding:13px 18px 13px 16px;
+  border:0;border-radius:999px;
+  font-family:var(--sans);font-weight:500;font-size:13px;
+  cursor:pointer;
+  display:flex;align-items:center;gap:10px;
+  box-shadow:0 8px 26px rgba(0,0,0,.15);
+  transition:transform .15s ease, box-shadow .2s ease;
+}
+.ask:hover{transform:translateY(-1px);box-shadow:0 12px 34px rgba(0,0,0,.2);}
+.ask:active{transform:translateY(0);}
+.ask .dot{
+  width:7px;height:7px;background:var(--wz);border-radius:50%;
+  flex-shrink:0;
+  animation:dotPulse 2s ease-in-out infinite;
+  box-shadow:0 0 0 3px rgba(255,61,46,.2);
+}
+@keyframes dotPulse{
+  0%,100%{opacity:1;}
+  50%{opacity:.55;}
+}
+.ask .label{flex:1;text-align:left;}
+.ask .arr{opacity:.6;font-size:14px;}
+
+/* ========== TOAST ========== */
+.toast{
+  position:fixed;bottom:76px;left:50%;
+  transform:translate(-50%,6px);
+  background:var(--ink);color:#fff;
+  padding:10px 16px;border-radius:10px;
+  font-family:var(--sans);font-weight:500;font-size:12.5px;
+  box-shadow:0 10px 28px rgba(0,0,0,.22);
+  opacity:0;pointer-events:none;z-index:200;
+  transition:opacity .2s ease, transform .25s var(--ease);
+  max-width:90vw;
+  text-align:center;
+}
+.toast.show{opacity:1;transform:translate(-50%,0);}
+
+/* ========== HINT ========== */
+.hint{
+  position:fixed;bottom:72px;left:50%;
+  transform:translateX(-50%);
+  background:#fff;border:1px solid var(--rule);
+  padding:8px 14px;border-radius:999px;
+  font-family:var(--mono);font-size:10.5px;color:var(--muted);
+  letter-spacing:.02em;
+  box-shadow:0 6px 18px rgba(0,0,0,.06);
+  opacity:0;pointer-events:none;
+  transition:opacity .4s ease;
+  z-index:90;
+}
+.hint.show{opacity:1;}
+
+/* ========== SUBTLE CUE ON FIRST PHASE ========== */
+.phase.beckon::before{
+  content:'';position:absolute;inset:0;
+  border-radius:inherit;pointer-events:none;
+  box-shadow:0 0 0 0 rgba(91,61,246,.25);
+  animation:beckon 2.5s ease-out infinite;
+}
+@keyframes beckon{
+  0%{box-shadow:0 0 0 0 rgba(91,61,246,.3);}
+  100%{box-shadow:0 0 0 10px rgba(91,61,246,0);}
+}
+
+/* ========== RESPONSIVE ========== */
+@media (min-width:640px){
+  body{font-size:16px;}
+  .top,.story-head{padding-left:24px;padding-right:24px;}
+  .journey{padding:10px 20px;max-width:640px;width:100%;margin:0 auto;}
+  .ask{max-width:640px;margin:8px auto 16px;width:calc(100% - 40px);}
+  .story-title{font-size:22px;}
+  .phase-title{font-size:16.5px;}
+  .moment-title{font-size:14.5px;}
+  .moment.expanded .moment-title{font-size:18px;}
+  .moment-body{font-size:14px;}
+  .insight-text{font-size:13.5px;}
+}
+
+@media (min-width:900px){
+  .journey,.ask,.story-head .inner,.top .inner{max-width:720px;}
+}
+
+*:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:6px;}
+
+/* Make sure position:absolute inside transitions works */
+.phase{position:relative;}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="brand">Wizzme <span class="exp">in-situ · v5</span></div>
+  <div class="switcher" id="switcher">
+    <button data-story="aryan" class="active">Aryan</button>
+    <button data-story="prathamesh">Prathamesh</button>
+  </div>
+</header>
+
+<section class="story-head" id="storyHead"></section>
+
+<main class="journey" id="journey"></main>
+
+<button class="ask" id="askBtn" aria-label="Ask">
+  <span class="dot"></span>
+  <span class="label" id="askLabel">Ask anything about this story</span>
+  <span class="arr">→</span>
+</button>
+
+<div class="hint" id="hint">tap any row to expand · tap again to collapse</div>
+<div class="toast" id="toast"></div>
+
+<script>
+// ==========================
+// DATA (same trees as v4)
+// ==========================
+const stories = {
+  aryan: {
+    meta:{
+      subject:'Aryan Arora', subjectInitial:'A',
+      interviewer:'Ayush Agrawal', interviewerInitial:'Ay',
+      date:'Apr 15, 2026', duration:'23 min', turns:'70 turns'
+    },
+    title:"How Aryan walked away from a 1 Cr quant shot and built a PhD-bound research track at KGP",
+    phases:[
+      {
+        id:'cgpa', num:'Phase 01',
+        title:'The CGPA Foundation',
+        sub:'Two years of playing the grades game — with a quant shop as the real target.',
+        moments:[
+          {
+            id:'first-year', label:'THE START',
+            title:'First year was about DepC, not research',
+            body:"Aryan came into KGP with Manufacturing Science — a branch he didn't want. Department change was the plan from day one, and it meant CGPA. The previous cutoff was 9.45, so 9.45 became the target. He closed the first year at 9.45, jumped into Mathematics. Research wasn't even on the map yet.",
+            quote:{text:"9.5 was a safe bet. So I just kept it there.", attrib:"Aryan"},
+            insights:[
+              {id:'safe-bet', text:"When the game is clearly scored, aim at the cutoff + a small safety margin — not at the ceiling.", from:"Reading Aryan's first-year play"}
+            ]
+          },
+          {
+            id:'quant-chase', label:'THE DETOUR',
+            title:'Second year: chasing quant like everyone else in Math',
+            body:"Once in Math, the default career became quant. Seniors pointed to 1 Cr packages and it felt like a short walk. Aryan didn't love DSA, but he figured quant was different — problem-solving, mathematical, well-paid. He kept the CGPA grind, ~95% attendance, rehearsed midsems. Not for research yet — because quant shops used CGPA as a first filter.",
+            stat:{n:"~95%", l:"class attendance, year 2"},
+            insights:[
+              {id:'cgpa-infra', text:"Even paths you later abandon leave infrastructure behind. CGPA bought for quant ended up paying for research.", from:"In hindsight"}
+            ]
+          }
+        ]
+      },
+      {
+        id:'break', num:'Phase 02',
+        title:'The Break',
+        sub:"Year 3 intern season — when the quant plan fell apart and the research plan actually began.",
+        moments:[
+          {
+            id:'cdc-walkout', label:'THE PIVOT',
+            title:"The intern season that broke the quant plan",
+            body:"Third-year intern season came. Aryan hadn't done DSA prep. His only plan was quant prob-stat rounds. When quant didn't happen — heartbreak, unprepared, unwilling to reverse-engineer his life around DSA — he walked out after Day 1 of CDC. He'd taken a stochastic process course; that prof had offered a project. A friend pointed him at a young CS prof doing ML. The new goal: land an international research intern and make not sitting for placements survivable.",
+            quote:{text:"I was very clear from day one — why am I even going for placements? Just a backup.", attrib:"Aryan"},
+            insights:[
+              {id:'real-backup', text:"Backup plans have to be actual plans. If you haven't prepared for one, you don't have a backup — you have a fantasy.", from:"The intern-season lesson"},
+              {id:'young-prof', text:"Pick a young prof for your first project. More undergrads, more available, research interests haven't ossified.", from:"Aryan's rule"}
+            ]
+          },
+          {
+            id:'anu-opening', label:'THE OPENING',
+            title:'How the ANU intern actually happened',
+            body:"He applied to ANU, EPFL, ETH, Aalto, IST Austria. No published paper. The decisive edge wasn't the CV — it was access to information. A senior, Rishabh, had gone through ANU under a related prof. A call the night before Aryan's interview laid out the unwritten rules: how KGP shortlists first, how the prof then picks from that shortlist, how to map his background to the professor's actual project.",
+            stat:{n:"$8,500", l:"FRT grant — removed funding as a blocker"},
+            insights:[
+              {id:'senior-context', text:"One senior with context beats ten seniors with advice. The prep call mattered more than any cold email.", from:"How Rishabh actually helped"},
+              {id:'prof-shortlist', text:"The real filter is the prof's past shortlists, not your CV. Map your background to their actual project.", from:"The unwritten ANU rule"}
+            ]
+          }
+        ]
+      },
+      {
+        id:'abroad', num:'Phase 03',
+        title:'Abroad, and the loop closes',
+        sub:"What Canberra made visible — and why Aryan now spends time on juniors.",
+        moments:[
+          {
+            id:'australia-pov', label:'THE WIDER LENS',
+            title:'Australia made the PhD feel non-negotiable',
+            body:"In Canberra he worked under Prof. Malcolm Sambridge extending the CoFI inverse-modeling library beyond geoscience. The bigger thing wasn't the project — it was the people. Lab-mates with three research interns and PhD offers from Japan, Singapore, Imperial before arriving at ANU. A research associate with a Berkeley PhD and a Caltech post-doc, quietly doing the work in Australia.",
+            quote:{text:"Research outside India pays. Once you leave, the narrative flips.", attrib:"Paraphrased"},
+            insights:[
+              {id:'exposure-not-talent', text:"The gap between KGP's research-serious juniors and what's out there is mostly exposure, not talent.", from:"Aryan's Canberra read"}
+            ]
+          },
+          {
+            id:'senior-sharing', label:'THE LOOP',
+            title:'Becoming the senior who shares',
+            body:"He came back knowing two things. One: research outside India pays. Two: the gap between KGP's research-serious juniors and what's out there is mostly exposure, not talent. Which is why he now forwards notes, shares rubrics, introduces juniors to seniors. The thing he got from Rishabh, he's trying to not gatekeep.",
+            insights:[
+              {id:'democratize', text:"Democratising access to people like Rishabh solves half the problem for anyone from KGP.", from:"Aryan's thesis"}
+            ]
+          }
+        ]
+      }
+    ]
+  },
+
+  prathamesh: {
+    meta:{
+      subject:'Prathamesh Baisware', subjectInitial:'P',
+      interviewer:'Ayush Agrawal', interviewerInitial:'Ay',
+      date:'Apr 18, 2026', duration:'40 min', turns:'140 turns'
+    },
+    title:'From a 2-sharing PG to a standalone Koramangala 1BHK, without paying brokerage',
+    phases:[
+      {
+        id:'pg', num:'Phase 01',
+        title:'The PG Setup',
+        sub:"The default first move to Bangalore — and why it stopped working after three months.",
+        moments:[
+          {
+            id:'pg-fine', label:'THE SETUP',
+            title:'PG was fine on paper, wrong in practice',
+            body:"Prathamesh moved into a 2-sharing PG close to the office — the classic first-move setup. Furniture, meals, company, everything handled. Two or three months in it stopped working. Not for any dramatic reason. The PG was well-equipped, but the environment around it didn't have the quiet and the space he actually needed after a workday. He wanted to be able to close a door.",
+            quote:{text:"It was well furnished, well equipped. But in general, the environment was not that good.", attrib:"Prathamesh"},
+            insights:[
+              {id:'env-not-amenity', text:"Environment beats amenities. PGs solve the physical problem, not the living one.", from:"Why first moves in BLR often don't stick"}
+            ]
+          }
+        ]
+      },
+      {
+        id:'hunt', num:'Phase 02',
+        title:'The 1BHK Hunt',
+        sub:"Twenty-five listings in, two filter paths tried, nothing converting.",
+        moments:[
+          {
+            id:'standalone', label:'THE SEARCH',
+            title:'The 1BHK hunt that taught him what Koramangala actually wants',
+            body:"The first move was into a standalone building, not a gated society — cheaper, more character, in a part of Koramangala that felt right on the walk-through. Clean, quiet, well-connected. One kilometre to office, one kilometre to badminton class. He lived there about a year before round two. This is the phase where most people burn weeks on 99acres and broker WhatsApp numbers. He'd tried both. 25 listings deep, nothing was converting in Koramangala 4 or 5.",
+            stat:{n:"~25", l:"listings tried before pivoting"},
+            insights:[
+              {id:'standalone-char', text:"In the right pocket, standalone buildings beat gated societies on both character and price.", from:"Prathamesh's filter takeaway"},
+              {id:'area-first', text:"Filter by area first, not by amenity. Koramangala 4/5, HSR, Indiranagar each have their own pockets.", from:"What 25 failed listings taught"}
+            ]
+          }
+        ]
+      },
+      {
+        id:'pivot', num:'Phase 03',
+        title:'The Pivot Move',
+        sub:"From \"show me what's available\" to \"is this place open\".",
+        moments:[
+          {
+            id:'owner-ask', label:'THE UNLOCK',
+            title:'The pivot was asking owners, not platforms',
+            body:"One day he stopped filtering through services and just asked a homeowner directly if he could come look. That single switch — from \"show me what's available\" to \"is this place open\" — ended the search. He got a deal he'd never have surfaced through the portals. His takeaway for anyone moving to Bangalore: use the zero-brokerage WhatsApp aggregators as a long-tail feed, not a search engine. Filter by area first, then walk the block.",
+            quote:{text:"Zero-brokerage aggregators are a feed, not a search engine. Filter by area, then go walk the block.", attrib:"Prathamesh"},
+            insights:[
+              {id:'feed-not-search', text:"Treat housing aggregators as a feed to scan, not a search engine to query.", from:"The core Bangalore-housing insight"}
+            ]
+          }
+        ]
+      }
+    ]
+  }
+};
+
+// ==========================
+// STATE
+// ==========================
+let currentStory = 'aryan';
+let open = { phase:null, moment:null, insight:null };
+const saved = new Set();
+
+const $ = id => document.getElementById(id);
+const esc = s => String(s).replace(/[&<>"']/g, c=>({
+  '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
+}[c]));
+
+// ==========================
+// RENDER
+// ==========================
+function renderStoryHead(){
+  const s = stories[currentStory];
+  const m = s.meta;
+  const chip = `${m.subject.split(' ')[0]} × ${m.interviewer.split(' ')[0]} · ${m.date} · ${m.duration}`;
+  $('storyHead').innerHTML = `
+    <div class="meta-row">
+      <span class="avs">
+        <span class="av">${esc(m.subjectInitial)}</span>
+        <span class="av b">${esc(m.interviewerInitial)}</span>
+      </span>
+      <span>${esc(chip)}</span>
+    </div>
+    <h1 class="story-title">${esc(s.title)}</h1>
+  `;
+}
+
+function renderJourney(){
+  const s = stories[currentStory];
+  $('journey').innerHTML = s.phases.map((p, pi) => `
+    <section class="phase${pi===0 && !localStorage.getItem('wz-v5-hinted') ? ' beckon':''}" data-phase="${p.id}">
+      <header class="phase-head" data-click="phase">
+        <span class="phase-num">${esc(p.num)}</span>
+        <span class="phase-title">${esc(p.title)}</span>
+        <span class="phase-count">${p.moments.length} moment${p.moments.length>1?'s':''}</span>
+        <span class="phase-chev">▼</span>
+      </header>
+      <div class="phase-sub">${esc(p.sub)}</div>
+      <div class="phase-preview">
+        ${p.moments.map((m, mi) => renderMomentPill(m, mi, p.id)).join('')}
+      </div>
+      <div class="phase-body">
+        ${p.moments.map((m, mi) => renderMoment(m, mi, p.id)).join('')}
+      </div>
+    </section>
+  `).join('');
+  attachListeners();
+}
+
+function renderMomentPill(m, mi, phaseId){
+  const insCount = (m.insights||[]).length;
+  return `
+    <button class="moment-pill" data-pill-phase="${phaseId}" data-pill-moment="${m.id}" type="button">
+      <span class="pill-label">
+        <span class="pill-num">${String(mi+1).padStart(2,'0')}</span>
+        <span>${esc(m.label)}</span>
+      </span>
+      <span class="pill-title">${esc(m.title)}</span>
+      <span class="pill-ins">
+        ${Array.from({length:insCount}).map(()=>'<span class="d"></span>').join('')}
+        <span>${insCount} insight${insCount>1?'s':''}</span>
+      </span>
+    </button>
+  `;
+}
+
+function renderMoment(m, mi, phaseId){
+  const insCount = (m.insights||[]).length;
+  const saveId = `mom-${phaseId}-${m.id}`;
+  return `
+    <article class="moment" data-moment="${m.id}" data-phase="${phaseId}">
+      <header class="moment-head" data-click="moment">
+        <span class="moment-num">${String(mi+1).padStart(2,'0')}</span>
+        <div class="moment-head-text">
+          <span class="moment-label">${esc(m.label)}</span>
+          <div class="moment-title">${esc(m.title)}</div>
+        </div>
+        <div class="moment-pips" aria-label="${insCount} insight${insCount>1?'s':''}">
+          ${Array.from({length:insCount}).map(()=>'<div class="pip"></div>').join('')}
+        </div>
+      </header>
+      <div class="moment-body">
+        <p>${esc(m.body)}</p>
+        ${m.quote ? `<div class="moment-quote">"${esc(m.quote.text)}"<span class="att">— ${esc(m.quote.attrib)}</span></div>`:''}
+        ${m.stat ? `<div class="moment-stat"><span class="n">${esc(m.stat.n)}</span><span class="l">${esc(m.stat.l)}</span></div>`:''}
+        ${(m.insights && m.insights.length) ? `
+          <div class="insights">
+            <div class="insights-hdr">${m.insights.length} insight${m.insights.length>1?'s':''} · tap to expand</div>
+            ${m.insights.map(i => renderInsight(i, m.id, phaseId)).join('')}
+          </div>
+        `:''}
+        <div class="moment-acts">
+          <button data-act="ask-moment">Ask about this moment</button>
+          <button class="${saved.has(saveId)?'saved':''}" data-act="save-moment" data-saveid="${saveId}">
+            ${saved.has(saveId) ? '✓ Saved' : 'Save to kit'}
+          </button>
+        </div>
+      </div>
+    </article>
+  `;
+}
+
+function renderInsight(i, momentId, phaseId){
+  const saveId = `ins-${phaseId}-${momentId}-${i.id}`;
+  return `
+    <div class="insight" data-insight="${i.id}" data-moment="${momentId}" data-phase="${phaseId}">
+      <div class="insight-text">${esc(i.text)}</div>
+      <div class="insight-body">
+        <div class="insight-from">${esc(i.from)}</div>
+        <div class="insight-acts">
+          <button class="${saved.has(saveId)?'saved':''}" data-act="save-insight" data-saveid="${saveId}">
+            ${saved.has(saveId) ? '✓ Saved' : 'Save this'}
+          </button>
+          <button data-act="ask-insight">Ask about this</button>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+// ==========================
+// STATE APPLICATION
+// ==========================
+function applyState(){
+  document.body.classList.toggle('focused', !!open.phase);
+  document.querySelectorAll('.phase').forEach(el => {
+    const pid = el.dataset.phase;
+    el.classList.remove('expanded','sib');
+    if (!open.phase) return;
+    if (open.phase === pid) el.classList.add('expanded');
+    else el.classList.add('sib');
+  });
+  document.querySelectorAll('.moment').forEach(el => {
+    const mid = el.dataset.moment;
+    const pid = el.dataset.phase;
+    el.classList.remove('expanded','sib');
+    if (open.phase !== pid || !open.moment) return;
+    if (open.moment === mid) el.classList.add('expanded');
+    else el.classList.add('sib');
+  });
+  document.querySelectorAll('.insight').forEach(el => {
+    const iid = el.dataset.insight;
+    const mid = el.dataset.moment;
+    const pid = el.dataset.phase;
+    el.classList.remove('expanded');
+    if (open.phase !== pid || open.moment !== mid) return;
+    if (open.insight === iid) el.classList.add('expanded');
+  });
+  updateAskLabel();
+}
+
+function updateAskLabel(){
+  const s = stories[currentStory];
+  const name = s.meta.subject.split(' ')[0];
+  let label = `Ask anything about ${name}'s path`;
+  if (open.phase && !open.moment) {
+    const p = s.phases.find(x=>x.id===open.phase);
+    label = `Ask about “${p.title}”`;
+  } else if (open.moment && !open.insight) {
+    label = `Ask about this moment`;
+  } else if (open.insight) {
+    label = `Explore this insight`;
+  }
+  $('askLabel').textContent = label;
+}
+
+// ==========================
+// HANDLERS
+// ==========================
+function attachListeners(){
+  document.querySelectorAll('.phase').forEach(p => {
+    p.querySelector('.phase-head').addEventListener('click', (e) => {
+      e.stopPropagation();
+      const pid = p.dataset.phase;
+      if (open.phase === pid) {
+        open = { phase:null, moment:null, insight:null };
+      } else {
+        open = { phase:pid, moment:null, insight:null };
+        if (p.classList.contains('beckon')) {
+          p.classList.remove('beckon');
+          localStorage.setItem('wz-v5-hinted','1');
+        }
+      }
+      applyState();
+    });
+    // Allow clicking anywhere on a sib phase to open it
+    p.addEventListener('click', (e) => {
+      if (!p.classList.contains('sib')) return;
+      if (e.target.closest('.phase-head')) return; // handled above
+      e.stopPropagation();
+      open = { phase:p.dataset.phase, moment:null, insight:null };
+      applyState();
+    });
+  });
+
+  // Moment pill — deep-link: open phase + open moment in one tap
+  document.querySelectorAll('.moment-pill').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const pid = btn.dataset.pillPhase;
+      const mid = btn.dataset.pillMoment;
+      open = { phase:pid, moment:mid, insight:null };
+      const phaseEl = document.querySelector(`.phase[data-phase="${pid}"]`);
+      if (phaseEl && phaseEl.classList.contains('beckon')) {
+        phaseEl.classList.remove('beckon');
+        localStorage.setItem('wz-v5-hinted','1');
+      }
+      applyState();
+    });
+  });
+
+  document.querySelectorAll('.moment').forEach(m => {
+    m.querySelector('.moment-head').addEventListener('click', (e) => {
+      e.stopPropagation();
+      const mid = m.dataset.moment;
+      if (open.moment === mid) {
+        open.moment = null; open.insight = null;
+      } else {
+        open.moment = mid; open.insight = null;
+      }
+      applyState();
+    });
+    m.addEventListener('click', (e) => {
+      if (!m.classList.contains('sib')) return;
+      if (e.target.closest('.moment-head')) return;
+      e.stopPropagation();
+      open.moment = m.dataset.moment; open.insight = null;
+      applyState();
+    });
+  });
+
+  document.querySelectorAll('.insight').forEach(i => {
+    i.addEventListener('click', (e) => {
+      if (e.target.tagName === 'BUTTON') return;
+      e.stopPropagation();
+      const iid = i.dataset.insight;
+      open.insight = open.insight === iid ? null : iid;
+      applyState();
+    });
+  });
+
+  // Save buttons
+  document.querySelectorAll('[data-act="save-moment"], [data-act="save-insight"]').forEach(b => {
+    b.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const id = b.dataset.saveid;
+      const isIns = b.dataset.act === 'save-insight';
+      if (saved.has(id)) {
+        saved.delete(id);
+        b.classList.remove('saved');
+        b.textContent = isIns ? 'Save this' : 'Save to kit';
+      } else {
+        saved.add(id);
+        b.classList.add('saved');
+        b.textContent = '✓ Saved';
+      }
+      toast('Saved to kit');
+    });
+  });
+
+  // Ask buttons
+  document.querySelectorAll('[data-act="ask-moment"], [data-act="ask-insight"]').forEach(b => {
+    b.addEventListener('click', (e) => {
+      e.stopPropagation();
+      toast('Ask pane would open here');
+    });
+  });
+}
+
+// Story switch
+$('switcher').addEventListener('click', (e) => {
+  if (e.target.tagName !== 'BUTTON') return;
+  const id = e.target.dataset.story;
+  if (id === currentStory) return;
+  currentStory = id;
+  open = { phase:null, moment:null, insight:null };
+  $('switcher').querySelectorAll('button').forEach(b =>
+    b.classList.toggle('active', b.dataset.story === id));
+  renderStoryHead();
+  renderJourney();
+  applyState();
+});
+
+// Ask
+$('askBtn').addEventListener('click', () => {
+  toast($('askLabel').textContent);
+});
+
+// Escape collapses one level up
+document.addEventListener('keydown', (e) => {
+  if (e.key !== 'Escape') return;
+  if (open.insight) { open.insight = null; applyState(); }
+  else if (open.moment) { open.moment = null; applyState(); }
+  else if (open.phase) { open.phase = null; applyState(); }
+});
+
+// ==========================
+// TOAST
+// ==========================
+let toastTimer = null;
+function toast(msg){
+  const t = $('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(()=>t.classList.remove('show'), 1800);
+}
+
+// ==========================
+// INIT
+// ==========================
+renderStoryHead();
+renderJourney();
+applyState();
+
+if (!localStorage.getItem('wz-v5-hinted')) {
+  setTimeout(()=>{
+    $('hint').classList.add('show');
+    setTimeout(()=>$('hint').classList.remove('show'), 4500);
+  }, 800);
+}
+</script>
+</body>
+</html>

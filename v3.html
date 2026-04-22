@@ -1,0 +1,829 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Wizzme — story demo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet"/>
+<style>
+
+/* ─────────────────────────────────────────────────────────────
+   Wizzme story surface — v3
+   Design thesis: processed conversation on a product surface,
+   not a published article. Moves away from editorial longform.
+   ───────────────────────────────────────────────────────────── */
+
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{background:#0b0b0d;color:#0a0a0a;font-family:'Inter',sans-serif;-webkit-font-smoothing:antialiased}
+body{min-height:100vh;}
+a{color:inherit;text-decoration:none}
+button{font:inherit;cursor:pointer;border:0;background:none;color:inherit}
+
+:root{
+  --ink:#0a0a0a;
+  --body:#1a1a1d;
+  --muted:#6d6d74;
+  --faint:#a0a0a8;
+  --surface:#ffffff;
+  --surface2:#f5f5f3;
+  --surface3:#ececea;
+  --line:#e6e6e2;
+  --line-strong:#c8c8c2;
+  --wz:#5b2cff;           /* Wizzme purple — NOT Ken's yellow, NOT Claude's terracotta */
+  --wz-ink:#2a0d99;
+  --wz-tint:#eee8ff;
+  --wz-bg:#f4efff;
+  --accent:#ff4d3d;       /* functional accent for one-off callouts */
+  --mono:'JetBrains Mono','SF Mono',ui-monospace,monospace;
+  --serif:'Instrument Serif',Georgia,serif;
+}
+
+/* ── top app chrome ── */
+.app{max-width:880px;margin:0 auto;padding:28px 24px 120px;background:#fff;min-height:100vh;}
+@media(max-width:640px){.app{padding:20px 18px 100px;}}
+
+.topnav{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:10px 0 28px;
+}
+.brand{display:flex;align-items:center;gap:10px;}
+.brand-dot{
+  width:26px;height:26px;border-radius:7px;background:var(--ink);
+  display:flex;align-items:center;justify-content:center;color:#fff;
+  font-weight:800;font-size:13px;letter-spacing:-.02em;
+  position:relative;overflow:hidden;
+}
+.brand-dot::after{
+  content:'';position:absolute;inset:0;
+  background:radial-gradient(circle at 70% 30%,var(--wz) 0%,transparent 60%);
+  opacity:.9;
+}
+.brand-dot span{position:relative;z-index:1;}
+.brand-name{font-weight:800;font-size:15px;letter-spacing:-.01em;}
+
+.switcher{
+  display:flex;gap:4px;background:var(--surface2);padding:4px;border-radius:10px;
+}
+.switcher button{
+  padding:8px 14px;border-radius:7px;font-size:12.5px;font-weight:600;
+  color:var(--muted);letter-spacing:-.005em;transition:all .15s ease;
+}
+.switcher button.active{background:#fff;color:var(--ink);box-shadow:0 1px 2px rgba(0,0,0,.04);}
+
+/* ── pair chip header — the conversation source ── */
+.source-rail{
+  display:flex;align-items:center;gap:14px;padding:14px 16px;
+  background:var(--surface2);border-radius:12px;margin-bottom:28px;
+}
+.pair{display:flex;align-items:center;gap:0;}
+.ava{
+  width:32px;height:32px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-family:var(--mono);font-weight:600;font-size:11.5px;
+  color:#fff;letter-spacing:-.02em;
+  border:2px solid #fff;
+}
+.ava.narr{background:var(--ink);}
+.ava.intv{background:var(--wz);}
+.pair .ava:last-child{margin-left:-8px;}
+.source-meta{flex:1;display:flex;flex-direction:column;gap:2px;min-width:0;}
+.source-meta .names{
+  font-size:13px;font-weight:600;color:var(--ink);letter-spacing:-.005em;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.source-meta .names .x{color:var(--muted);font-weight:500;margin:0 4px;}
+.source-meta .detail{
+  font-family:var(--mono);font-size:10.5px;color:var(--muted);
+  letter-spacing:.02em;
+}
+.source-meta .detail span{margin:0 6px;color:var(--line-strong);}
+.source-badge{
+  font-family:var(--mono);font-size:10px;font-weight:500;
+  letter-spacing:.1em;text-transform:uppercase;color:var(--wz);
+  padding:5px 9px;border-radius:5px;background:var(--wz-bg);
+  white-space:nowrap;
+}
+
+/* ── headline ── */
+.headline{padding:8px 0 24px;}
+.tags{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px;}
+.tag{
+  font-size:12px;font-weight:500;color:var(--body);
+  padding:5px 10px;border-radius:999px;background:var(--surface2);
+  letter-spacing:-.005em;
+}
+.tag.pri{background:var(--wz-bg);color:var(--wz-ink);}
+.title{
+  font-size:36px;line-height:1.08;letter-spacing:-.028em;
+  font-weight:800;color:var(--ink);margin-bottom:14px;
+}
+.title em{font-style:italic;font-family:var(--serif);font-weight:400;font-size:1.05em;}
+.dek{
+  font-size:17px;line-height:1.55;color:var(--body);
+  font-weight:400;letter-spacing:-.005em;max-width:700px;
+}
+@media(max-width:640px){.title{font-size:28px;}.dek{font-size:15.5px;}}
+
+/* ── arc card (before → after) ── */
+.arc{
+  margin:36px 0;padding:24px;background:var(--ink);color:#fff;
+  border-radius:14px;position:relative;overflow:hidden;
+}
+.arc::before{
+  content:'';position:absolute;top:-60%;right:-20%;width:70%;height:200%;
+  background:radial-gradient(ellipse,var(--wz) 0%,transparent 60%);
+  opacity:.28;filter:blur(20px);pointer-events:none;
+}
+.arc-row{display:grid;grid-template-columns:1fr auto 1fr;gap:18px;align-items:stretch;position:relative;}
+.arc-side{display:flex;flex-direction:column;gap:6px;}
+.arc-label{
+  font-family:var(--mono);font-size:10px;font-weight:500;
+  letter-spacing:.16em;text-transform:uppercase;color:rgba(255,255,255,.5);
+}
+.arc-side.after .arc-label{color:var(--wz);}
+.arc-text{font-size:15px;line-height:1.45;color:rgba(255,255,255,.92);font-weight:400;}
+.arc-arrow{
+  display:flex;align-items:center;justify-content:center;
+  font-size:22px;color:rgba(255,255,255,.35);padding:0 6px;
+}
+.arc-span{
+  margin-top:16px;padding-top:14px;border-top:1px solid rgba(255,255,255,.1);
+  font-family:var(--mono);font-size:11px;color:rgba(255,255,255,.55);
+  letter-spacing:.04em;text-align:center;
+}
+@media(max-width:640px){
+  .arc-row{grid-template-columns:1fr;gap:20px;}
+  .arc-arrow{transform:rotate(90deg);justify-content:flex-start;padding:0;}
+}
+
+/* ── impact stats strip ── */
+.stats{
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:0;
+  margin:28px 0;border:1px solid var(--line);border-radius:12px;overflow:hidden;
+}
+.stat-cell{
+  padding:18px 16px;border-right:1px solid var(--line);
+  display:flex;flex-direction:column;gap:4px;background:#fff;
+}
+.stat-cell:last-child{border-right:none;}
+.stat-val{
+  font-size:22px;font-weight:800;color:var(--ink);letter-spacing:-.02em;
+  line-height:1;
+}
+.stat-lbl{
+  font-family:var(--mono);font-size:10.5px;color:var(--muted);
+  letter-spacing:.02em;margin-top:6px;line-height:1.3;
+}
+@media(max-width:540px){
+  .stats{grid-template-columns:1fr 1fr;}
+  .stat-cell:nth-child(2n){border-right:none;}
+  .stat-cell{border-bottom:1px solid var(--line);}
+  .stat-cell:nth-last-child(-n+2){border-bottom:none;}
+}
+
+/* ── section header (module label) ── */
+.mod-head{
+  display:flex;align-items:baseline;gap:12px;
+  margin:48px 0 18px;padding-bottom:12px;border-bottom:1px solid var(--line);
+}
+.mod-num{
+  font-family:var(--mono);font-size:12px;font-weight:500;
+  color:var(--wz);letter-spacing:.05em;
+}
+.mod-label{
+  font-size:13px;font-weight:600;color:var(--ink);
+  letter-spacing:-.005em;text-transform:lowercase;
+}
+.mod-side{margin-left:auto;font-family:var(--mono);font-size:11px;color:var(--muted);letter-spacing:.03em;}
+
+/* ── insights carousel ── */
+.insights{
+  margin:12px 0 8px;position:relative;
+}
+.ins-track{
+  display:flex;gap:14px;overflow-x:auto;padding:4px 0 14px;
+  scroll-snap-type:x mandatory;scrollbar-width:none;
+}
+.ins-track::-webkit-scrollbar{display:none;}
+.ins-card{
+  flex:0 0 86%;max-width:520px;scroll-snap-align:start;
+  background:#fff;border:1px solid var(--line);border-radius:14px;
+  padding:22px 22px 18px;display:flex;flex-direction:column;gap:14px;
+  position:relative;
+}
+.ins-card::before{
+  content:'';position:absolute;top:0;left:22px;right:22px;height:3px;
+  background:var(--wz);border-radius:0 0 3px 3px;
+}
+.ins-quote{
+  font-size:17px;line-height:1.45;color:var(--ink);font-weight:500;
+  letter-spacing:-.01em;
+}
+.ins-quote::before{content:'"';color:var(--wz);font-weight:700;margin-right:2px;}
+.ins-quote::after{content:'"';color:var(--wz);font-weight:700;}
+.ins-foot{display:flex;align-items:center;gap:10px;margin-top:auto;padding-top:8px;border-top:1px solid var(--line);}
+.ins-ava{
+  width:24px;height:24px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-family:var(--mono);font-weight:600;font-size:9.5px;color:#fff;
+}
+.ins-meta{flex:1;}
+.ins-speaker{font-size:12px;font-weight:600;color:var(--ink);}
+.ins-ctx{font-family:var(--mono);font-size:10.5px;color:var(--muted);margin-top:2px;line-height:1.35;}
+.ins-ctrls{display:flex;justify-content:space-between;align-items:center;margin-top:4px;}
+.ins-dots{display:flex;gap:5px;}
+.ins-dots button{
+  width:6px;height:6px;border-radius:50%;background:var(--line-strong);
+}
+.ins-dots button.on{background:var(--wz);width:18px;border-radius:3px;}
+.ins-nav{display:flex;gap:6px;}
+.ins-nav button{
+  width:32px;height:32px;border-radius:8px;background:var(--surface2);
+  color:var(--ink);font-size:13px;display:flex;align-items:center;justify-content:center;
+}
+
+/* ── story section ── */
+.sect{margin:44px 0;}
+.sect-head{display:flex;align-items:baseline;gap:14px;margin-bottom:14px;}
+.sect-n{
+  font-family:var(--mono);font-size:34px;font-weight:500;
+  color:var(--wz);line-height:1;letter-spacing:-.04em;
+}
+.sect-meta{display:flex;flex-direction:column;gap:2px;}
+.sect-label{
+  font-family:var(--mono);font-size:10.5px;color:var(--muted);
+  letter-spacing:.08em;text-transform:uppercase;
+}
+.sect-ttl{
+  font-size:22px;font-weight:800;color:var(--ink);
+  letter-spacing:-.02em;line-height:1.25;
+}
+.sect-body{
+  font-size:16px;line-height:1.65;color:var(--body);font-weight:400;
+  letter-spacing:-.005em;
+}
+.sect-body p{margin-bottom:14px;}
+.sect-body p:last-child{margin-bottom:0;}
+
+/* quote block — CHAT MESSAGE style, not editorial pull quote */
+.qblock{
+  display:flex;gap:12px;margin:22px 0;padding:16px 18px 14px;
+  background:var(--surface2);border-radius:14px 14px 14px 3px;
+  position:relative;
+}
+.qblock .ava{width:30px;height:30px;font-size:10.5px;flex-shrink:0;}
+.qblock-body{flex:1;}
+.qblock-speaker{font-size:12px;font-weight:600;color:var(--wz);margin-bottom:5px;}
+.qblock-text{
+  font-size:15.5px;line-height:1.5;color:var(--ink);font-weight:500;
+  letter-spacing:-.008em;
+}
+
+/* inline stat inside section */
+.inline-stat{
+  display:inline-flex;align-items:baseline;gap:8px;
+  margin:14px 0 4px;padding:10px 14px;background:var(--wz-bg);
+  border-radius:8px;
+}
+.inline-stat .v{font-size:18px;font-weight:800;color:var(--wz-ink);letter-spacing:-.02em;}
+.inline-stat .l{font-family:var(--mono);font-size:11px;color:var(--wz-ink);opacity:.72;letter-spacing:.02em;}
+
+/* ── wisdom block ── */
+.wisdom{margin:52px 0 32px;}
+.wisdom-list{display:flex;flex-direction:column;gap:0;border-top:1px solid var(--line);}
+.wisdom-item{
+  padding:20px 0;border-bottom:1px solid var(--line);
+  display:grid;grid-template-columns:64px 1fr;gap:18px;align-items:baseline;
+}
+.wisdom-n{
+  font-family:var(--mono);font-size:30px;font-weight:500;
+  color:var(--wz);line-height:1;letter-spacing:-.04em;
+}
+.wisdom-ttl{
+  font-size:16.5px;font-weight:700;color:var(--ink);
+  letter-spacing:-.01em;margin-bottom:5px;
+}
+.wisdom-body{font-size:14.5px;line-height:1.55;color:var(--body);}
+@media(max-width:540px){
+  .wisdom-item{grid-template-columns:1fr;gap:4px;}
+  .wisdom-n{font-size:22px;}
+}
+
+/* ── Q&A + next-story panel (product surface, not coda) ── */
+.next-panel{
+  margin-top:48px;padding:28px 24px;background:var(--ink);color:#fff;
+  border-radius:16px;position:relative;overflow:hidden;
+}
+.next-panel::before{
+  content:'';position:absolute;bottom:-80%;left:-20%;width:80%;height:200%;
+  background:radial-gradient(ellipse,var(--wz) 0%,transparent 60%);
+  opacity:.22;filter:blur(24px);pointer-events:none;
+}
+.np-head{
+  font-family:var(--mono);font-size:10.5px;font-weight:500;
+  letter-spacing:.16em;text-transform:uppercase;color:var(--wz);
+  margin-bottom:10px;position:relative;
+}
+.np-ttl{
+  font-size:22px;font-weight:800;letter-spacing:-.02em;color:#fff;
+  margin-bottom:18px;position:relative;
+}
+.qchips{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:22px;position:relative;}
+.qchip{
+  font-size:13px;font-weight:500;color:#fff;
+  padding:9px 14px;border-radius:999px;
+  background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);
+  letter-spacing:-.005em;transition:all .15s ease;
+}
+.qchip:hover{background:rgba(255,255,255,.14);border-color:rgba(255,255,255,.3);}
+.qinput{
+  display:flex;gap:8px;background:rgba(255,255,255,.06);
+  border:1px solid rgba(255,255,255,.14);border-radius:10px;
+  padding:4px 4px 4px 14px;position:relative;
+}
+.qinput input{
+  flex:1;background:transparent;border:none;outline:none;color:#fff;
+  font-family:inherit;font-size:14px;padding:10px 0;
+}
+.qinput input::placeholder{color:rgba(255,255,255,.4);}
+.qinput button{
+  background:var(--wz);color:#fff;font-weight:600;font-size:13px;
+  padding:10px 18px;border-radius:8px;letter-spacing:-.005em;
+}
+
+/* ── next stories ── */
+.next-stories{margin-top:44px;padding-top:32px;border-top:1px solid var(--line);}
+.ns-head{
+  font-family:var(--mono);font-size:11px;font-weight:500;
+  letter-spacing:.14em;text-transform:uppercase;color:var(--muted);
+  margin-bottom:16px;
+}
+.ns-list{display:flex;flex-direction:column;gap:0;}
+.ns-row{
+  display:grid;grid-template-columns:auto 1fr auto;gap:16px;align-items:center;
+  padding:16px 0;border-bottom:1px solid var(--line);cursor:pointer;
+  transition:padding .15s ease;
+}
+.ns-row:last-child{border-bottom:none;}
+.ns-row:hover{padding-left:6px;}
+.ns-tag{
+  font-family:var(--mono);font-size:10.5px;font-weight:500;
+  color:var(--wz);letter-spacing:.08em;text-transform:uppercase;
+  padding:5px 9px;border-radius:5px;background:var(--wz-bg);
+  white-space:nowrap;
+}
+.ns-body{min-width:0;}
+.ns-ttl{
+  font-size:15.5px;font-weight:600;color:var(--ink);
+  letter-spacing:-.008em;line-height:1.3;
+}
+.ns-who{
+  font-family:var(--mono);font-size:10.5px;color:var(--muted);
+  margin-top:3px;letter-spacing:.02em;
+}
+.ns-arr{color:var(--muted);font-size:16px;}
+
+/* ── fine print at very bottom ── */
+.fine{
+  margin-top:40px;padding-top:20px;border-top:1px solid var(--line);
+  display:flex;gap:14px;align-items:center;justify-content:space-between;
+  font-family:var(--mono);font-size:10.5px;color:var(--muted);
+  letter-spacing:.02em;
+}
+.fine-left{display:flex;align-items:center;gap:8px;}
+.fine-left .pill{
+  padding:4px 8px;border-radius:4px;background:var(--surface2);color:var(--body);
+  font-weight:500;
+}
+
+.hidden{display:none!important;}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <div class="topnav">
+    <div class="brand">
+      <div class="brand-dot"><span>W</span></div>
+      <div class="brand-name">Wizzme</div>
+    </div>
+    <div class="switcher" id="switcher"></div>
+  </div>
+
+  <div id="stage"></div>
+
+</div>
+
+<script>
+/* ──────────────────────────────────────────────────────────
+   STORY DATA — simulated output of the `transcript-to-story`
+   skill applied to the two sample conversations.
+   In production, this JSON is produced by an LLM call, not
+   hand-written.
+   ────────────────────────────────────────────────────────── */
+
+const STORIES = [
+  /* ═══════════════════════════════════════════════════════
+     STORY 1 — Aryan × Ayush — FULL_STORY
+     ═══════════════════════════════════════════════════════ */
+  {
+    meta:{
+      topic_id:"aryan-kgp-quant-to-research",
+      topic_title:"Pivoting from quant dreams to a research path at KGP",
+      classification:"FULL_STORY",
+      confidence:0.92,
+      why_this_type:"clear before/after · named profs · hard CGPA + grant numbers · reflection",
+      conversation:{recorded_on:"Apr 15, 2026",duration_min:23,turns:70}
+    },
+    participants:{
+      narrator:{name:"Aryan Arora",headline:"Research Asst · ANU · IIT KGP Math '26",location:"Canberra / Gurugram",avatar_initial:"A"},
+      interviewer:{name:"Ayush Agrawal",headline:"Co-founder · Wizzme",avatar_initial:"Ay"}
+    },
+    headline:{
+      tags:["research path","IIT KGP","PhD prep"],
+      title:"How Aryan walked away from a 1 Cr quant shot and built a PhD-bound research track at KGP",
+      dek:"Four years of deliberate CGPA choices, one turning-point intern rejection, and a system for landing an international research internship without a published paper."
+    },
+    arc:{
+      before:"First-year at KGP in Manufacturing Science — chasing department change, then chasing quant packages like the rest of Math.",
+      after:"ANU research intern with an $8,500 FRT grant, three ongoing papers, a PhD-bound Masters track into Germany.",
+      span:"2022 → 2026"
+    },
+    impact_stats:[
+      {value:"9.0+",label:"CGPA held across 8 sems"},
+      {value:"$8,500",label:"ANU FRT research grant"},
+      {value:"30–40",label:"KGP batchmates with 9+ CGPA"},
+      {value:"1 of 77",label:"Math dept peers going for PhD"}
+    ],
+    insights:[
+      {
+        quote:"Research gives you something no one has done. That feeling was the one thing I was chasing.",
+        speaker:"narrator",
+        context:"Why quant's grind didn't land — it didn't leave him with anything of his own."
+      },
+      {
+        quote:"Companies don't really care about CGPA above 8.5. For research they have no other metric — so they just see the number.",
+        speaker:"narrator",
+        context:"Why 9+ isn't ego — it's a gatekeeper for international apps where your college is unknown."
+      },
+      {
+        quote:"Young profs have a tendency to accept more kids. You can walk in any time, they help.",
+        speaker:"narrator",
+        context:"Non-obvious rule for picking a first research guide."
+      },
+      {
+        quote:"Nobody knows KGP's CGPA scale abroad. 9+ is basically your 4.0 for their eyes.",
+        speaker:"narrator",
+        context:"How foreign committees actually read Indian transcripts."
+      }
+    ],
+    sections:[
+      {
+        label:"how it started",number:1,
+        title:"First year was about DepC, not research",
+        body:"Aryan came into KGP with a Mechanical branch he didn't want — Manufacturing Science & Engineering. The JEE rank was weak, so the plan was always department change. Department change meant one thing: CGPA. He saw previous cutoffs were around 9.5, so that became the target from day one.|He closed first year at 9.45 — enough to jump into Mathematics. Research wasn't even on the map yet. He still thought he'd grind for placements in two years.",
+        pull_quote:{text:"I saw the previous year's cutoff was public. 9.5 was a safe bet. So I just kept it there.",speaker:"narrator"},
+        stat:{value:"9.45",label:"first-year CGPA"}
+      },
+      {
+        label:"the detour",number:2,
+        title:"Second year: chasing quant like everyone else in Math",
+        body:"Once in Math, the default career became quant. Seniors said it, the 1 Cr packages confirmed it, and Math-to-quant felt like a short walk. Aryan didn't love DSA, but he figured quant was different — problem-solving, mathematical, well-paid.|So he kept the CGPA grind going, attended ~95% of classes, revised biweekly, and treated every midsem as a rehearsed set-piece. He wasn't doing this for research yet. He was doing it because quant shops also used CGPA as a first filter."
+      },
+      {
+        label:"the pivot",number:3,
+        title:"The intern season that broke the quant plan",
+        body:"Third-year intern season came. Aryan hadn't done DSA prep. His only plan was quant prob-stat rounds. When quant didn't happen — heartbroken, unprepared, unwilling to reverse-engineer his life around DSA — he walked out after Day 1 of CDC.|That was the fork. He'd taken a stochastic process course the previous semester; the prof had offered a project. He said yes. A friend pointed him at a young CS prof doing ML work — young profs, he'd heard, take on more undergraduates. He said yes to that too. Two research projects running in parallel, and a new goal: land an international research intern, which would make not sitting for placements survivable.",
+        pull_quote:{text:"I was very clear from day one — why am I even going for placement? Just a backup. I didn't care about the package.",speaker:"narrator"}
+      },
+      {
+        label:"the opening",number:4,
+        title:"How the ANU intern actually happened",
+        body:"He applied to ANU, EPFL, ETH, Aalto, IST Austria. No published paper, just ongoing work. The decisive edge wasn't the CV — it was access to information. A senior, Rishabh, had gone through the ANU process under a related prof. A call the night before Aryan's interview gave him the unwritten rules: how KGP shortlists first, how the prof then picks from that shortlist, how to map your background to the professor's actual project rather than pitching yourself.|ANU came through. The FRT — Future Research Talent — award, $8,500 USD, covered everything. That single acceptance removed the need for KGPF Foundation funding, removed the pressure to convert to the 5-year program, and removed any question of going back to placements.",
+        stat:{value:"8–10",label:"shortlisted post-KGP filter, before prof interview"}
+      },
+      {
+        label:"what changed abroad",number:5,
+        title:"Australia made the PhD feel non-negotiable",
+        body:"In Canberra he worked under Prof. Malcolm Sambridge extending the CoFI inverse-modeling library beyond geoscience. The bigger thing wasn't the project — it was the people. Lab-mates who had three research interns and PhD offers from Japan, Singapore, Imperial College London before even arriving at ANU. A research associate who'd done her PhD at Berkeley and post-doc at Caltech, now quietly doing the work in Australia.|He came back knowing two things. One: research outside India pays — the narrative that research is broke doesn't hold up once you leave. Two: the gap between KGP's research-serious juniors and what's out there is mostly exposure, not talent. Which is why he now forwards notes, shares rubrics, introduces juniors to seniors. The thing he got from Rishabh, he's trying to not gatekeep.",
+        pull_quote:{text:"Reaching out to those people in KGP is difficult. If that gets democratised — anyone from KGP gets access to Siddhesh's wisdom — that solves half the problem.",speaker:"narrator"}
+      }
+    ],
+    wisdom:[
+      {n:1,title:"Keep the CGPA above 9 if research is on the table",body:"Companies don't care past 8.5, but international programs have no other signal from KGP. 9+ is what unlocks the rest of the funnel."},
+      {n:2,title:"Pick a young prof for your first project",body:"They take more undergrads, are available, and their research interests haven't ossified. Walk in any time and it's fine."},
+      {n:3,title:"For internships, skip cold mail — go through programs",body:"ETH, EPFL, ANU, NUS, Aalto have structured undergrad programs. Direct-to-prof cold mail mostly gets you funded $500/mo in a $3k/mo city."},
+      {n:4,title:"Find one senior who's been through your target program",body:"Rishabh's 20-minute call the night before ANU's interview — reading the professor's project, mapping background to it — is what actually landed it."},
+      {n:5,title:"Don't cram; revise weekly instead",body:"Four courses and two labs a semester — call it 170 hours a week minus sleep. Nothing is that dense if you don't leave it to the last three days."}
+    ],
+    suggested_questions:[
+      "How did he structure his weekly CGPA routine in third year?",
+      "What did the 20-minute call with Rishabh actually cover?",
+      "Which German universities is he targeting for Masters?",
+      "How do KGPF and GKF foundation funding actually work?"
+    ],
+    next_story_hints:[
+      {tag:"research",title:"Cold-emailing 30 profs for a Masters admit: what actually worked",who:"Riya Menon, IIT BHU '24"},
+      {tag:"PhD prep",title:"Applying to Germany without the DAAD: a 2026 playbook",who:"Kartikeya Joshi, IIT Bombay '25"},
+      {tag:"quant",title:"From IIT Math to Jane Street: a 14-month interview track",who:"Dev Mehra, IIT KGP '24"}
+    ]
+  },
+
+  /* ═══════════════════════════════════════════════════════
+     STORY 2 — Prathamesh × Ayush — FULL_STORY (shorter)
+     ═══════════════════════════════════════════════════════ */
+  {
+    meta:{
+      topic_id:"prathamesh-bangalore-housing",
+      topic_title:"Finding a 1BHK in Koramangala after PG life",
+      classification:"FULL_STORY",
+      confidence:0.71,
+      why_this_type:"real before/after · concrete process + named services · reflection · 3 sections, no wisdom block (tips live in sections, doesn't meet ≥3 wisdom threshold)",
+      conversation:{recorded_on:"Apr 18, 2026",duration_min:40,turns:140}
+    },
+    participants:{
+      narrator:{name:"Prathamesh Baisware",headline:"APM · Rocket Learning · ex-JPMC",location:"Bangalore",avatar_initial:"P"},
+      interviewer:{name:"Ayush Agrawal",headline:"Co-founder · Wizzme",avatar_initial:"Ay"}
+    },
+    headline:{
+      tags:["Bangalore housing","first move","Koramangala"],
+      title:"From a 2-sharing PG to a standalone Koramangala 1BHK, without paying brokerage",
+      dek:"How one newcomer stopped scrolling 99acres and started asking owners directly — turning a 25-listing grind into a single right-fit deal."
+    },
+    arc:{
+      before:"Cramped 2-sharing PG near office — well-furnished, but the usual PG environment. No space, no calm.",
+      after:"Standalone 1BHK in Koramangala 4/5, 1 km from office, 1 km from badminton class, zero brokerage paid.",
+      span:"~3 months of hunting"
+    },
+    impact_stats:[
+      {value:"₹199/mo",label:"zero-brokerage WhatsApp group"},
+      {value:"1 km",label:"walk to office + badminton class"},
+      {value:"~25",label:"listings tried before pivoting"}
+    ],
+    insights:[
+      {
+        quote:"The PG was well-furnished. The environment was not.",
+        speaker:"narrator",
+        context:"Why most first moves don't stick — PGs solve the physical problem, not the living one."
+      },
+      {
+        quote:"I just asked the homeowner directly — can I see this? I got a very good deal that way.",
+        speaker:"narrator",
+        context:"The moment his search flipped from platforms to people."
+      },
+      {
+        quote:"If they're giving it brokerage-free, paying ₹199 for a WhatsApp group is not a big deal.",
+        speaker:"narrator",
+        context:"Reframing the subscription — it's not a fee, it's a filter."
+      }
+    ],
+    sections:[
+      {
+        label:"the setup",number:1,
+        title:"PG was fine on paper, wrong in practice",
+        body:"Prathamesh moved to Bangalore into a 2-sharing PG close to the office — the classic first-move setup. Furniture, meals, company, everything handled.|Two or three months in it stopped working. Not for any dramatic reason. The PG was well-equipped, but the environment around it didn't have the quiet and the space he actually needed after a workday. He wanted to be able to close a door.",
+        pull_quote:{text:"It was well furnished, well equipped. But in general — the environment was not that good.",speaker:"narrator"}
+      },
+      {
+        label:"the search",number:2,
+        title:"The 1BHK hunt that taught him what Koramangala actually wants",
+        body:"The first move was into a standalone building, not a gated society — cheaper, more character, and in a part of Koramangala that felt right on the walk-through. Clean, quiet, well-connected. One kilometre to office, one kilometre to badminton class.|He lived there about a year before round two — first-floor issues, insects, the usual. This is the phase where most people burn weeks on 99acres and broker WhatsApp numbers. He'd tried both: subscription plans, brokerage-free aggregators at ₹199–₹299/month. 25 listings deep, nothing in Koramangala 4 or 5 was converting.",
+        stat:{value:"standalone",label:"not gated — the unlock"}
+      },
+      {
+        label:"the unlock",number:3,
+        title:"The pivot was asking owners, not platforms",
+        body:"One day he stopped filtering through services and just asked a homeowner directly if he could come look. That single switch — from “show me what's available” to “is this place open” — ended the search. He got a deal he'd never have surfaced through the portals.|His takeaway for anyone moving to Bangalore: use the zero-brokerage WhatsApp aggregators as a long-tail feed, not a search engine. Filter by area first — Koramangala 4/5, HSR, Indiranagar each have their own pockets — and when you find a listing you like, bypass the portal and walk up to the building.",
+        pull_quote:{text:"Zero-brokerage aggregators are a feed, not a search engine. Filter by area, then just go walk the block.",speaker:"narrator"}
+      }
+    ],
+    /* no wisdom block — doesn't meet the ≥3 strong items bar */
+    suggested_questions:[
+      "Which WhatsApp groups actually worked for zero-brokerage listings?",
+      "How much rent did he land at in Koramangala?",
+      "What made standalone buildings the unlock over gated societies?",
+      "Would he still recommend starting in a PG first?"
+    ],
+    next_story_hints:[
+      {tag:"Bangalore",title:"HSR vs Indiranagar — where to land as a first-job hire in 2026",who:"Ananya Varma, PM · Swiggy"},
+      {tag:"moving cities",title:"Shifting to Mumbai on a ₹12 LPA package without losing your weekends",who:"Rohit Desai, Sr. Analyst · ICICI"}
+    ]
+  }
+];
+
+/* ──────────────────────────────────────────────────────────
+   RENDERER — produces the story surface from a JSON object.
+   Every optional module is a guarded render; if data isn't
+   there, nothing shows up. No filler.
+   ────────────────────────────────────────────────────────── */
+
+const $=(sel,el=document)=>el.querySelector(sel);
+const el=(tag,cls,html)=>{const n=document.createElement(tag);if(cls)n.className=cls;if(html!=null)n.innerHTML=html;return n;};
+const esc=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+
+function renderStory(s){
+  const root=el('div','');
+  /* source rail */
+  const rail=el('div','source-rail');
+  const pair=el('div','pair');
+  pair.innerHTML=`
+    <div class="ava narr">${esc(s.participants.narrator.avatar_initial)}</div>
+    <div class="ava intv">${esc(s.participants.interviewer.avatar_initial)}</div>`;
+  const meta=el('div','source-meta');
+  meta.innerHTML=`
+    <div class="names">${esc(s.participants.narrator.name)} <span class="x">×</span> ${esc(s.participants.interviewer.name)}</div>
+    <div class="detail">${esc(s.meta.conversation.recorded_on)}<span>·</span>${s.meta.conversation.duration_min} min<span>·</span>${s.meta.conversation.turns} turns</div>`;
+  const badge=el('div','source-badge','extracted from a conversation');
+  rail.append(pair,meta,badge);
+  root.append(rail);
+
+  /* headline */
+  const head=el('div','headline');
+  const tags=el('div','tags');
+  s.headline.tags.forEach((t,i)=>tags.append(el('span','tag'+(i===0?' pri':''),esc(t))));
+  head.append(
+    tags,
+    el('h1','title',esc(s.headline.title)),
+    el('p','dek',esc(s.headline.dek))
+  );
+  root.append(head);
+
+  /* arc (optional) */
+  if(s.arc){
+    const arc=el('div','arc');
+    arc.innerHTML=`
+      <div class="arc-row">
+        <div class="arc-side before">
+          <div class="arc-label">before</div>
+          <div class="arc-text">${esc(s.arc.before)}</div>
+        </div>
+        <div class="arc-arrow">→</div>
+        <div class="arc-side after">
+          <div class="arc-label">after</div>
+          <div class="arc-text">${esc(s.arc.after)}</div>
+        </div>
+      </div>
+      <div class="arc-span">spanning ${esc(s.arc.span)}</div>`;
+    root.append(arc);
+  }
+
+  /* impact stats (optional) */
+  if(s.impact_stats && s.impact_stats.length>=2){
+    const stats=el('div','stats');
+    s.impact_stats.forEach(st=>{
+      const c=el('div','stat-cell');
+      c.innerHTML=`<div class="stat-val">${esc(st.value)}</div><div class="stat-lbl">${esc(st.label)}</div>`;
+      stats.append(c);
+    });
+    root.append(stats);
+  }
+
+  /* insights carousel */
+  if(s.insights && s.insights.length){
+    const head=el('div','mod-head');
+    head.innerHTML=`<div class="mod-num">I.</div><div class="mod-label">key insights from the conversation</div><div class="mod-side">${s.insights.length} items</div>`;
+    const track=el('div','ins-track');
+    s.insights.forEach((ins,i)=>{
+      const sp=ins.speaker==='narrator'?s.participants.narrator:s.participants.interviewer;
+      const card=el('div','ins-card');
+      card.innerHTML=`
+        <div class="ins-quote">${esc(ins.quote)}</div>
+        <div class="ins-foot">
+          <div class="ins-ava ${ins.speaker==='narrator'?'narr':'intv'}" style="background:${ins.speaker==='narrator'?'var(--ink)':'var(--wz)'}">${esc(sp.avatar_initial)}</div>
+          <div class="ins-meta">
+            <div class="ins-speaker">${esc(sp.name)}</div>
+            <div class="ins-ctx">${esc(ins.context)}</div>
+          </div>
+        </div>`;
+      track.append(card);
+    });
+    const wrap=el('div','insights');
+    wrap.append(track);
+    root.append(head,wrap);
+  }
+
+  /* sections */
+  const secHead=el('div','mod-head');
+  secHead.innerHTML=`<div class="mod-num">II.</div><div class="mod-label">the story in ${s.sections.length} beats</div><div class="mod-side">read time ~${Math.max(2,s.sections.length*2)} min</div>`;
+  root.append(secHead);
+
+  s.sections.forEach(sect=>{
+    const sc=el('section','sect');
+    const sh=el('div','sect-head');
+    sh.innerHTML=`
+      <div class="sect-n">${String(sect.number).padStart(2,'0')}</div>
+      <div class="sect-meta">
+        <div class="sect-label">${esc(sect.label)}</div>
+        <div class="sect-ttl">${esc(sect.title)}</div>
+      </div>`;
+    sc.append(sh);
+    const body=el('div','sect-body');
+    sect.body.split('|').forEach(p=>body.append(el('p','',esc(p))));
+    sc.append(body);
+    if(sect.stat){
+      const stat=el('div','inline-stat');
+      stat.innerHTML=`<span class="v">${esc(sect.stat.value)}</span><span class="l">${esc(sect.stat.label)}</span>`;
+      sc.append(stat);
+    }
+    if(sect.pull_quote){
+      const sp=sect.pull_quote.speaker==='narrator'?s.participants.narrator:s.participants.interviewer;
+      const qb=el('div','qblock');
+      qb.innerHTML=`
+        <div class="ava ${sect.pull_quote.speaker==='narrator'?'narr':'intv'}" style="background:${sect.pull_quote.speaker==='narrator'?'var(--ink)':'var(--wz)'}">${esc(sp.avatar_initial)}</div>
+        <div class="qblock-body">
+          <div class="qblock-speaker">${esc(sp.name)}</div>
+          <div class="qblock-text">${esc(sect.pull_quote.text)}</div>
+        </div>`;
+      sc.append(qb);
+    }
+    root.append(sc);
+  });
+
+  /* wisdom (optional) */
+  if(s.wisdom && s.wisdom.length>=3){
+    const head=el('div','mod-head');
+    head.innerHTML=`<div class="mod-num">III.</div><div class="mod-label">what ${s.participants.narrator.name.split(' ')[0].toLowerCase()}'d tell you</div><div class="mod-side">${s.wisdom.length} rules</div>`;
+    const list=el('div','wisdom-list');
+    s.wisdom.forEach(w=>{
+      const it=el('div','wisdom-item');
+      it.innerHTML=`
+        <div class="wisdom-n">${String(w.n).padStart(2,'0')}</div>
+        <div>
+          <div class="wisdom-ttl">${esc(w.title)}</div>
+          <div class="wisdom-body">${esc(w.body)}</div>
+        </div>`;
+      list.append(it);
+    });
+    const wrap=el('div','wisdom');
+    wrap.append(list);
+    root.append(head,wrap);
+  }
+
+  /* Q&A panel */
+  if(s.suggested_questions && s.suggested_questions.length){
+    const panel=el('div','next-panel');
+    const chips=s.suggested_questions.map(q=>`<button class="qchip">${esc(q)}</button>`).join('');
+    panel.innerHTML=`
+      <div class="np-head">ask anything from this conversation</div>
+      <div class="np-ttl">Not sure what to try next? Ask the story.</div>
+      <div class="qchips">${chips}</div>
+      <div class="qinput">
+        <input placeholder="Type a question about ${esc(s.participants.narrator.name.split(' ')[0])}'s path…"/>
+        <button>Ask</button>
+      </div>`;
+    root.append(panel);
+  }
+
+  /* next stories */
+  if(s.next_story_hints && s.next_story_hints.length){
+    const ns=el('div','next-stories');
+    const head=el('div','ns-head','more stories on similar paths');
+    const list=el('div','ns-list');
+    s.next_story_hints.forEach(h=>{
+      const row=el('div','ns-row');
+      row.innerHTML=`
+        <div class="ns-tag">${esc(h.tag)}</div>
+        <div class="ns-body">
+          <div class="ns-ttl">${esc(h.title)}</div>
+          <div class="ns-who">${esc(h.who)}</div>
+        </div>
+        <div class="ns-arr">→</div>`;
+      list.append(row);
+    });
+    ns.append(head,list);
+    root.append(ns);
+  }
+
+  /* fine print */
+  const fine=el('div','fine');
+  fine.innerHTML=`
+    <div class="fine-left">
+      <span class="pill">SKILL</span>
+      <span>transcript-to-story · v0.1</span>
+    </div>
+    <div>topic · ${esc(s.meta.topic_id)}</div>`;
+  root.append(fine);
+
+  return root;
+}
+
+/* mount */
+const stage=$('#stage');
+const sw=$('#switcher');
+function mount(i){
+  stage.innerHTML='';
+  stage.append(renderStory(STORIES[i]));
+  [...sw.children].forEach((b,j)=>b.classList.toggle('active',j===i));
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+STORIES.forEach((s,i)=>{
+  const b=el('button','',s.participants.narrator.name.split(' ')[0]);
+  b.onclick=()=>mount(i);
+  sw.append(b);
+});
+mount(0);
+</script>
+</body>
+</html>

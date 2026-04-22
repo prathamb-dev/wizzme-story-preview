@@ -1,0 +1,1322 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Wizzme · Story Canvas (experiment)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #0a0a0a;
+    --body: #1f1f1f;
+    --muted: #6b6b6b;
+    --faint: #9a9a9a;
+    --paper: #f7f6f2;
+    --paper2: #efeee8;
+    --paper3: #e6e4dc;
+    --rule-soft: #eaeae4;
+    --rule: #d4d4ce;
+    --rule-strong: #a1a19a;
+    --accent: #5b3df6;
+    --accent-soft: #ece7ff;
+    --accent-deep: #3920c0;
+    --wz: #ff3d2e;
+    --sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    --mono: 'IBM Plex Mono', 'SF Mono', Menlo, monospace;
+  }
+
+  * { box-sizing: border-box; }
+  html, body { height: 100%; }
+  body {
+    margin: 0;
+    background: var(--paper);
+    font-family: var(--sans);
+    color: var(--ink);
+    overflow: hidden;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* Subtle grid background to hint canvas */
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background-image:
+      radial-gradient(circle at 50% 30%, rgba(91,61,246,0.04), transparent 60%),
+      radial-gradient(circle at 80% 80%, rgba(255,61,46,0.03), transparent 55%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* Top bar */
+  .top-bar {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    background: rgba(247,246,242,0.78);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border-bottom: 1px solid rgba(0,0,0,0.06);
+    padding: 14px 24px;
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .logo {
+    font-family: var(--sans); font-weight: 800; font-size: 15.5px;
+    letter-spacing: -0.01em;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .logo::before {
+    content: 'W';
+    display: inline-grid; place-items: center;
+    width: 28px; height: 28px; border-radius: 7px;
+    background: var(--ink); color: #fff;
+    font-weight: 900; font-size: 13px;
+  }
+  .lab-tag {
+    font-family: var(--mono); font-size: 10px; font-weight: 500;
+    color: var(--muted); letter-spacing: 0.16em; text-transform: uppercase;
+    padding-left: 6px; border-left: 1px solid var(--rule);
+  }
+  .switcher {
+    display: flex; gap: 2px; padding: 3px;
+    background: var(--paper2); border-radius: 8px;
+    border: 1px solid rgba(0,0,0,0.04);
+  }
+  .switcher button {
+    border: none; background: transparent; cursor: pointer;
+    font-family: var(--sans); font-weight: 600; font-size: 12.5px;
+    color: var(--muted); padding: 6px 12px; border-radius: 5px;
+    transition: all 0.15s ease;
+  }
+  .switcher button.active {
+    background: #fff; color: var(--ink);
+    box-shadow: 0 1px 2px rgba(0,0,0,0.06);
+  }
+
+  /* Breadcrumb */
+  .crumb {
+    position: fixed; top: 64px; left: 24px; right: 24px; z-index: 90;
+    font-family: var(--mono); font-size: 11px;
+    color: var(--muted); letter-spacing: 0.02em;
+    display: flex; gap: 2px; align-items: center;
+    flex-wrap: wrap;
+  }
+  .crumb .c-item {
+    cursor: pointer;
+    padding: 4px 10px; border-radius: 5px;
+    transition: background 0.15s ease, color 0.15s ease;
+    white-space: nowrap; max-width: 280px;
+    overflow: hidden; text-overflow: ellipsis;
+  }
+  .crumb .c-item:hover { background: rgba(0,0,0,0.05); color: var(--ink); }
+  .crumb .c-item.current { color: var(--ink); font-weight: 500; cursor: default; }
+  .crumb .c-item.current:hover { background: transparent; }
+  .crumb .c-sep { opacity: 0.35; padding: 0 2px; }
+
+  /* Canvas + layers */
+  .canvas {
+    position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+    z-index: 10;
+  }
+  .layer {
+    position: absolute; inset: 0;
+    display: grid; place-items: center;
+    padding: 112px 40px 108px;
+    opacity: 0; pointer-events: none;
+    transform: scale(0.92);
+    transition: opacity 0.38s cubic-bezier(.2,.65,.25,1),
+                transform 0.42s cubic-bezier(.2,.65,.25,1);
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  .layer.active {
+    opacity: 1; pointer-events: auto;
+    transform: scale(1);
+  }
+  .layer.flying-out-up {
+    /* leaving upward (zooming out) */
+    transform: scale(1.15);
+    opacity: 0;
+  }
+  .layer.flying-out-down {
+    /* leaving downward (zooming in) */
+    transform: scale(0.82);
+    opacity: 0;
+  }
+
+  /* ============ ROOT layer: phases constellation ============ */
+  .root-wrap {
+    max-width: 960px; width: 100%; text-align: center;
+    margin: 0 auto;
+  }
+  .root-meta {
+    font-family: var(--mono); font-size: 10.5px; font-weight: 500;
+    color: var(--muted); letter-spacing: 0.16em; text-transform: uppercase;
+    margin-bottom: 18px;
+    display: inline-flex; align-items: center; gap: 10px;
+    padding: 7px 14px; background: var(--paper2); border-radius: 999px;
+    border: 1px solid rgba(0,0,0,0.04);
+  }
+  .root-meta .avs {
+    display: inline-flex; margin-right: 2px;
+  }
+  .root-meta .av {
+    width: 20px; height: 20px; border-radius: 50%; background: var(--ink);
+    color: #fff; font-size: 10px; font-weight: 700; display: grid;
+    place-items: center; border: 2px solid var(--paper2);
+    margin-right: -6px; font-family: var(--sans);
+  }
+  .root-meta .av:nth-child(2) { background: var(--accent); }
+
+  .root-title {
+    font-family: var(--sans); font-weight: 800; font-size: 36px;
+    line-height: 1.14; letter-spacing: -0.022em;
+    color: var(--ink); margin: 0 auto 14px;
+    max-width: 820px;
+  }
+  .root-dek {
+    font-family: var(--sans); font-weight: 400; font-size: 16px;
+    line-height: 1.55; color: var(--muted);
+    max-width: 600px; margin: 0 auto 56px;
+  }
+
+  .phases {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+    gap: 16px;
+    max-width: 1000px; margin: 0 auto;
+    position: relative;
+  }
+  .phase-card {
+    background: #fff;
+    border: 1px solid var(--rule-soft);
+    border-radius: 16px;
+    padding: 22px 22px 20px;
+    text-align: left;
+    cursor: pointer;
+    transition: transform 0.25s cubic-bezier(.2,.65,.25,1),
+                box-shadow 0.25s ease,
+                border-color 0.2s ease;
+    position: relative;
+    animation: fadeInUp 0.6s cubic-bezier(.2,.65,.25,1) both;
+  }
+  .phase-card:nth-child(1) { animation-delay: 0.05s; }
+  .phase-card:nth-child(2) { animation-delay: 0.15s; }
+  .phase-card:nth-child(3) { animation-delay: 0.25s; }
+  .phase-card:nth-child(4) { animation-delay: 0.35s; }
+  @keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .phase-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 14px 38px rgba(10,10,10,0.09);
+    border-color: rgba(10,10,10,0.18);
+  }
+  .phase-card:hover .phase-pulse { opacity: 1; }
+
+  .phase-pulse {
+    position: absolute; top: 18px; right: 18px;
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--accent);
+    opacity: 0.55;
+    transition: opacity 0.25s ease;
+  }
+  .phase-pulse::after {
+    content: ''; position: absolute; inset: 0;
+    border-radius: 50%; background: var(--accent);
+    animation: pulse 2s ease-in-out infinite;
+  }
+  @keyframes pulse {
+    0% { transform: scale(1); opacity: 0.5; }
+    100% { transform: scale(3); opacity: 0; }
+  }
+
+  .phase-num {
+    font-family: var(--mono); font-size: 10.5px; font-weight: 500;
+    color: var(--accent); letter-spacing: 0.14em; text-transform: uppercase;
+    margin-bottom: 10px;
+  }
+  .phase-title {
+    font-family: var(--sans); font-weight: 800; font-size: 19px;
+    line-height: 1.22; letter-spacing: -0.012em; color: var(--ink);
+    margin: 0 0 8px;
+  }
+  .phase-sub {
+    font-family: var(--sans); font-weight: 400; font-size: 13.5px;
+    line-height: 1.5; color: var(--muted); margin: 0;
+  }
+  .phase-foot {
+    font-family: var(--mono); font-size: 10.5px; font-weight: 500;
+    color: var(--faint); margin-top: 16px;
+    padding-top: 12px; border-top: 1px solid var(--rule-soft);
+    display: flex; justify-content: space-between; align-items: center;
+    letter-spacing: 0.04em;
+  }
+  .phase-foot .arr {
+    color: var(--ink); font-family: var(--sans); font-weight: 600;
+    transition: transform 0.2s ease;
+  }
+  .phase-card:hover .phase-foot .arr { transform: translateX(4px); }
+
+  /* connector lines between phase cards (subtle) */
+  .phase-flow {
+    position: absolute; top: 50%; left: 0; right: 0; height: 1px;
+    background: repeating-linear-gradient(
+      90deg, var(--rule) 0, var(--rule) 4px, transparent 4px, transparent 10px
+    );
+    z-index: -1; opacity: 0.6;
+  }
+  @media (max-width: 780px) { .phase-flow { display: none; } }
+
+  /* ============ PHASE layer: moments ============ */
+  .phase-wrap { max-width: 780px; width: 100%; }
+  .phase-header { text-align: center; margin-bottom: 38px; }
+  .phase-header .lbl {
+    font-family: var(--mono); font-size: 10.5px; font-weight: 500;
+    color: var(--accent); letter-spacing: 0.16em; text-transform: uppercase;
+    margin-bottom: 10px;
+  }
+  .phase-header h2 {
+    font-family: var(--sans); font-weight: 800; font-size: 32px;
+    letter-spacing: -0.02em; line-height: 1.15; color: var(--ink);
+    margin: 0 0 12px;
+  }
+  .phase-header p {
+    font-family: var(--sans); font-size: 15px; color: var(--muted);
+    max-width: 520px; margin: 0 auto; line-height: 1.55;
+  }
+
+  .moments-flow { position: relative; }
+  .moments-flow::before {
+    content: ''; position: absolute;
+    left: 30px; top: 30px; bottom: 30px;
+    width: 2px; background: var(--rule-soft);
+    z-index: 0;
+  }
+  .moment-card {
+    position: relative; z-index: 1;
+    background: #fff; border: 1px solid var(--rule-soft);
+    border-radius: 14px; padding: 20px 22px;
+    cursor: pointer; margin-bottom: 14px;
+    transition: transform 0.2s cubic-bezier(.2,.65,.25,1),
+                box-shadow 0.2s ease,
+                border-color 0.2s ease;
+    display: grid;
+    grid-template-columns: 44px 1fr auto;
+    align-items: start; gap: 16px;
+    animation: fadeInUp 0.5s cubic-bezier(.2,.65,.25,1) both;
+  }
+  .moment-card:nth-child(1) { animation-delay: 0.04s; }
+  .moment-card:nth-child(2) { animation-delay: 0.14s; }
+  .moment-card:nth-child(3) { animation-delay: 0.24s; }
+  .moment-card:hover {
+    transform: translateX(4px);
+    box-shadow: 0 10px 28px rgba(10,10,10,0.08);
+    border-color: rgba(10,10,10,0.18);
+  }
+  .moment-num {
+    font-family: var(--mono); font-size: 11px; font-weight: 500;
+    color: #fff; background: var(--ink);
+    width: 34px; height: 34px; border-radius: 8px;
+    display: grid; place-items: center;
+    letter-spacing: 0.06em;
+  }
+  .moment-card .m-label {
+    font-family: var(--mono); font-size: 9.5px; font-weight: 500;
+    color: var(--wz); letter-spacing: 0.16em; text-transform: uppercase;
+    margin-bottom: 5px;
+  }
+  .moment-card .m-title {
+    font-family: var(--sans); font-weight: 700; font-size: 17px;
+    color: var(--ink); line-height: 1.32; letter-spacing: -0.006em;
+    margin: 0 0 6px;
+  }
+  .moment-card .m-prev {
+    font-family: var(--sans); font-size: 13.5px; color: var(--muted);
+    line-height: 1.5; margin: 0;
+  }
+  .moment-card .m-prev .ins-hint {
+    font-family: var(--mono); font-size: 10.5px; font-weight: 500;
+    color: var(--accent); letter-spacing: 0.08em;
+    margin-top: 8px; display: inline-block;
+  }
+  .moment-card .m-arrow {
+    color: var(--faint); font-size: 22px; align-self: center;
+    transition: transform 0.2s ease, color 0.2s ease;
+    font-family: var(--sans); font-weight: 300;
+  }
+  .moment-card:hover .m-arrow {
+    transform: translateX(3px); color: var(--ink);
+  }
+
+  /* ============ MOMENT layer: full content ============ */
+  .moment-wrap { max-width: 700px; width: 100%; }
+  .moment-label-big {
+    font-family: var(--mono); font-size: 11px; font-weight: 500;
+    color: var(--wz); letter-spacing: 0.2em; text-transform: uppercase;
+    margin-bottom: 14px;
+  }
+  .moment-title-big {
+    font-family: var(--sans); font-weight: 800; font-size: 34px;
+    letter-spacing: -0.022em; line-height: 1.15; color: var(--ink);
+    margin: 0 0 24px;
+  }
+  .moment-body-text {
+    font-family: var(--sans); font-size: 16px; line-height: 1.65;
+    color: var(--body); margin: 0 0 22px; font-weight: 400;
+  }
+  .moment-quote {
+    border-left: 3px solid var(--wz);
+    padding: 4px 0 4px 22px;
+    margin: 26px 0;
+    font-family: var(--sans); font-weight: 700; font-size: 21px;
+    line-height: 1.32; color: var(--ink); letter-spacing: -0.012em;
+  }
+  .moment-quote .attrib {
+    display: block; margin-top: 10px;
+    font-family: var(--mono); font-weight: 400; font-size: 11px;
+    color: var(--muted); letter-spacing: 0.06em; text-transform: uppercase;
+  }
+  .moment-stat {
+    display: inline-flex; flex-direction: column;
+    padding: 16px 22px;
+    background: var(--ink); color: #fff;
+    border-radius: 12px;
+    margin: 20px 0;
+  }
+  .moment-stat .n {
+    font-family: var(--sans); font-weight: 900; font-size: 30px;
+    line-height: 1; letter-spacing: -0.025em;
+  }
+  .moment-stat .l {
+    font-family: var(--mono); font-size: 11px; color: rgba(255,255,255,0.65);
+    letter-spacing: 0.08em; margin-top: 8px;
+  }
+
+  .insight-branches {
+    margin-top: 32px; padding-top: 26px;
+    border-top: 1px solid var(--rule);
+  }
+  .insight-branches .hdr {
+    font-family: var(--mono); font-size: 10.5px; font-weight: 500;
+    color: var(--muted); letter-spacing: 0.16em; text-transform: uppercase;
+    margin-bottom: 14px;
+  }
+  .insight-chip {
+    display: flex; justify-content: space-between; align-items: center;
+    gap: 14px;
+    background: var(--paper2);
+    border: 1px solid transparent;
+    border-radius: 12px; padding: 16px 18px; margin-bottom: 8px;
+    cursor: pointer;
+    transition: background 0.18s ease, transform 0.18s ease, border-color 0.18s ease;
+  }
+  .insight-chip:hover {
+    background: #fff;
+    border-color: rgba(10,10,10,0.2);
+    transform: translateX(3px);
+  }
+  .insight-chip .ic-text {
+    font-family: var(--sans); font-weight: 600; font-size: 14.5px;
+    color: var(--ink); line-height: 1.45; letter-spacing: -0.005em;
+    margin: 0;
+  }
+  .insight-chip .ic-arrow {
+    color: var(--accent); font-weight: 600; font-size: 11.5px;
+    font-family: var(--mono); letter-spacing: 0.08em;
+    flex-shrink: 0; text-transform: uppercase;
+  }
+
+  .moment-inline-actions {
+    display: flex; gap: 10px; margin-top: 26px;
+    padding-top: 22px; border-top: 1px solid var(--rule);
+    flex-wrap: wrap;
+  }
+  .moment-inline-actions button {
+    border: 1px solid var(--rule); background: #fff;
+    font-family: var(--sans); font-weight: 600; font-size: 13px;
+    color: var(--ink); padding: 10px 16px; border-radius: 9px;
+    cursor: pointer;
+    transition: border-color 0.15s ease, background 0.15s ease, color 0.15s ease;
+  }
+  .moment-inline-actions button:hover {
+    border-color: var(--ink);
+  }
+  .moment-inline-actions button.save.saved {
+    background: var(--wz); border-color: var(--wz); color: #fff;
+  }
+
+  /* ============ INSIGHT layer: single focus ============ */
+  .insight-wrap { max-width: 620px; width: 100%; text-align: center; }
+  .insight-mark {
+    font-family: Georgia, serif;
+    font-size: 90px;
+    color: var(--wz); line-height: 0.7;
+    margin: 0 0 14px; font-weight: 400;
+  }
+  .insight-text-big {
+    font-family: var(--sans); font-weight: 700; font-size: 30px;
+    line-height: 1.3; letter-spacing: -0.02em;
+    color: var(--ink); margin: 0 0 26px;
+  }
+  .insight-from {
+    font-family: var(--mono); font-size: 11px; font-weight: 500;
+    color: var(--muted); letter-spacing: 0.16em; text-transform: uppercase;
+    margin-bottom: 40px;
+  }
+  .insight-actions {
+    display: flex; gap: 10px; justify-content: center;
+    flex-wrap: wrap;
+  }
+  .insight-action {
+    border: 1px solid var(--ink); background: var(--ink); color: #fff;
+    font-family: var(--sans); font-weight: 600; font-size: 13.5px;
+    padding: 12px 22px; border-radius: 10px; cursor: pointer;
+    transition: transform 0.15s ease, background 0.15s ease;
+  }
+  .insight-action.secondary {
+    background: transparent; color: var(--ink);
+  }
+  .insight-action:hover { transform: translateY(-1px); }
+  .insight-action.saved {
+    background: var(--wz); border-color: var(--wz); color: #fff;
+  }
+
+  /* ============ Floating ask chip ============ */
+  .float-ask {
+    position: fixed; bottom: 28px; left: 50%;
+    transform: translateX(-50%);
+    z-index: 95;
+    background: var(--ink); color: #fff;
+    font-family: var(--sans); font-weight: 500; font-size: 13.5px;
+    padding: 13px 22px 13px 18px; border-radius: 999px;
+    cursor: pointer; border: none;
+    display: flex; align-items: center; gap: 10px;
+    box-shadow: 0 12px 36px rgba(0,0,0,0.18);
+    transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.15s ease;
+    max-width: 90vw;
+  }
+  .float-ask:hover {
+    transform: translateX(-50%) translateY(-2px);
+    box-shadow: 0 18px 50px rgba(0,0,0,0.24);
+    background: #000;
+  }
+  .float-ask .dot {
+    width: 7px; height: 7px; background: var(--wz); border-radius: 50%;
+    flex-shrink: 0;
+    box-shadow: 0 0 0 3px rgba(255,61,46,0.25);
+    animation: chipDot 2s ease-in-out infinite;
+  }
+  @keyframes chipDot {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.55; }
+  }
+  .float-ask .chip-arrow {
+    font-size: 13px; opacity: 0.6;
+  }
+
+  /* ============ Zoom-out hint (top bar chevron) ============ */
+  .back-chev {
+    position: fixed; top: 90px; left: 50%; transform: translateX(-50%);
+    z-index: 92;
+    background: rgba(255,255,255,0.9);
+    backdrop-filter: blur(8px);
+    border: 1px solid var(--rule-soft);
+    padding: 6px 14px 6px 10px; border-radius: 999px;
+    font-family: var(--mono); font-size: 10.5px; font-weight: 500;
+    color: var(--muted); letter-spacing: 0.1em;
+    cursor: pointer; opacity: 0; pointer-events: none;
+    transition: opacity 0.25s ease, transform 0.2s ease;
+    display: flex; align-items: center; gap: 6px; text-transform: uppercase;
+  }
+  .back-chev.show { opacity: 1; pointer-events: auto; }
+  .back-chev:hover {
+    transform: translateX(-50%) translateY(-1px);
+    border-color: var(--ink); color: var(--ink);
+  }
+  .back-chev .ch {
+    font-family: var(--sans); font-weight: 600; font-size: 13px;
+  }
+
+  /* ============ First-visit hint ============ */
+  .hint {
+    position: fixed; bottom: 92px; left: 50%; transform: translateX(-50%);
+    z-index: 96;
+    background: #fff;
+    border: 1px solid var(--rule);
+    padding: 9px 14px; border-radius: 999px;
+    font-family: var(--mono); font-size: 11px; color: var(--muted);
+    letter-spacing: 0.02em;
+    opacity: 0; transition: opacity 0.45s ease;
+    pointer-events: none;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.08);
+    white-space: nowrap;
+  }
+  .hint.show { opacity: 1; }
+
+  /* ============ Responsive ============ */
+  @media (max-width: 700px) {
+    .top-bar { padding: 12px 14px; }
+    .crumb { left: 14px; right: 14px; top: 60px; }
+    .layer { padding: 112px 18px 108px; }
+    .root-title { font-size: 26px; }
+    .root-dek { font-size: 14.5px; margin-bottom: 36px; }
+    .phases { grid-template-columns: 1fr; gap: 12px; }
+    .moment-card { grid-template-columns: 36px 1fr 20px; gap: 12px; }
+    .moment-title-big { font-size: 26px; }
+    .insight-text-big { font-size: 22px; }
+    .insight-mark { font-size: 70px; }
+    .lab-tag { display: none; }
+    .moment-inline-actions button { flex: 1; }
+  }
+
+  /* ============ Focus / a11y ============ */
+  button, [role="button"] { font-family: inherit; }
+  *:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 4px; }
+</style>
+</head>
+<body>
+
+<header class="top-bar">
+  <div class="logo">Wizzme <span class="lab-tag">canvas · experiment</span></div>
+  <div class="switcher" id="switcher">
+    <button data-story="aryan" class="active">Aryan</button>
+    <button data-story="prathamesh">Prathamesh</button>
+  </div>
+</header>
+
+<nav class="crumb" id="crumb"></nav>
+
+<button class="back-chev" id="backChev" aria-label="Zoom out">
+  <span class="ch">↑</span> zoom out
+</button>
+
+<main class="canvas" id="canvas">
+  <section class="layer" id="layer-root" data-level="root"></section>
+  <section class="layer" id="layer-phase" data-level="phase"></section>
+  <section class="layer" id="layer-moment" data-level="moment"></section>
+  <section class="layer" id="layer-insight" data-level="insight"></section>
+</main>
+
+<button class="float-ask" id="floatAsk" aria-label="Ask about this story">
+  <span class="dot"></span>
+  <span id="askLabel">Ask anything about this story</span>
+  <span class="chip-arrow">→</span>
+</button>
+
+<div class="hint" id="hint">tap any card to zoom in · tap outside to zoom out · ← → for siblings</div>
+
+<script>
+// ==================================================
+// STORY TREES — hardcoded for experiment
+// Real version will get these from the skill
+// ==================================================
+
+const stories = {
+  aryan: {
+    meta: {
+      subject: 'Aryan Arora', initials: 'A', subjectInitial: 'A',
+      interviewer: 'Ayush Agrawal', interviewerInitial: 'Ay',
+      date: 'Apr 15, 2026', duration: '23 min', turns: '70 turns',
+      tags: ['research path', 'IIT KGP', 'PhD prep']
+    },
+    title: "How Aryan walked away from a 1 Cr quant shot and built a PhD-bound research track at KGP",
+    dek: "Four years of deliberate CGPA choices, one turning-point intern rejection, and a system for landing an international research internship without a published paper.",
+    phases: [
+      {
+        id: 'cgpa',
+        num: 'Phase 01',
+        title: 'The CGPA Foundation',
+        sub: "Two years of playing the grades game — with a quant shop as the real target.",
+        moments: [
+          {
+            id: 'first-year',
+            label: 'THE START',
+            title: 'First year was about DepC, not research',
+            body: "Aryan came into KGP with a Mechanical branch he didn't want — Manufacturing Science. The JEE rank was weak, so department change was the plan from day one. Department change meant one thing: CGPA. He saw the previous year's cutoff was 9.45, so 9.45 became the target. He closed first year at 9.45 — enough to jump into Mathematics. Research wasn't even on the map yet.",
+            quote: {
+              text: "9.5 was a safe bet. So I just kept it there.",
+              attrib: "Aryan Arora"
+            },
+            insights: [
+              {
+                id: 'safe-bet',
+                text: "When the game is clearly scored, aim at the cutoff plus a small safety margin — not at the ceiling.",
+                from: "Reading Aryan's first-year play"
+              }
+            ]
+          },
+          {
+            id: 'quant-chase',
+            label: 'THE DETOUR',
+            title: 'Second year: chasing quant like everyone else',
+            body: "Once in Math, the default career became quant. Seniors said the 1 Cr packages confirmed it, and Math-to-quant felt like a short walk. Aryan didn't love DSA, but he figured quant was different — problem-solving, mathematical, well-paid. He kept the CGPA grind going, attended ~95% of classes, revised biweekly, treated every midsem as a rehearsed set-piece. He wasn't doing this for research yet. He was doing it because quant shops also used CGPA as a first filter.",
+            stat: { n: '~95%', l: 'class attendance, year 2' },
+            insights: [
+              {
+                id: 'cgpa-infra',
+                text: "Even paths you later abandon leave infrastructure behind. CGPA was bought for quant — research just happened to inherit it.",
+                from: "In hindsight"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        id: 'break',
+        num: 'Phase 02',
+        title: 'The Break',
+        sub: "Year 3 intern season — when the quant plan fell apart and the research plan actually began.",
+        moments: [
+          {
+            id: 'cdc-walkout',
+            label: 'THE PIVOT',
+            title: "The intern season that broke the quant plan",
+            body: "Third-year intern season came. Aryan hadn't done DSA prep. His only plan was quant prob-stat rounds. When quant didn't happen — heartbreak, unprepared, unwilling to reverse-engineer his life around DSA — he walked out after Day 1 of CDC. That was the fork. He'd taken a stochastic process course the previous semester; the prof had offered a project. A friend pointed him at a young CS prof doing ML work. The new goal: land an international research intern, which would make not sitting for placements survivable.",
+            quote: {
+              text: "I was very clear from day one — why am I even going for placements? Just a backup. I didn't care about the package.",
+              attrib: "Aryan Arora"
+            },
+            insights: [
+              {
+                id: 'real-backup',
+                text: "Backup plans have to be actual plans. If you haven't prepared for one, you don't have a backup — you have a fantasy.",
+                from: "The intern-season lesson"
+              },
+              {
+                id: 'young-prof',
+                text: "Pick a young prof for your first project. More undergrads, more available, research interests haven't ossified.",
+                from: "Aryan's own rule"
+              }
+            ]
+          },
+          {
+            id: 'anu-opening',
+            label: 'THE OPENING',
+            title: 'How the ANU intern actually happened',
+            body: "He applied to ANU, EPFL, ETH, Aalto, IST Austria. No published paper, just ongoing work. The decisive edge wasn't the CV — it was access to information. A senior, Rishabh, had gone through the ANU process under a related prof. A call the night before Aryan's interview gave him the unwritten rules: how KGP shortlists first, how the prof then picks from that shortlist, how to map his background to the professor's actual project rather than pitching himself. ANU came through. The FRT — Future Research Talent — award, $8,500 USD, covered everything.",
+            stat: { n: '$8,500', l: 'FRT grant — removed funding as a blocker' },
+            insights: [
+              {
+                id: 'senior-context',
+                text: "One senior with context beats ten seniors with advice. The prep call mattered more than any cold email.",
+                from: "How Rishabh actually helped"
+              },
+              {
+                id: 'prof-shortlist',
+                text: "The real filter is the prof's past shortlists, not your CV. Map your background to their actual project.",
+                from: "The unwritten ANU rule"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        id: 'abroad',
+        num: 'Phase 03',
+        title: 'Abroad, and the loop closes',
+        sub: "What Canberra made visible — and why Aryan now spends time on juniors.",
+        moments: [
+          {
+            id: 'australia-pov',
+            label: 'THE WIDER LENS',
+            title: 'Australia made the PhD feel non-negotiable',
+            body: "In Canberra he worked under Prof. Malcolm Sambridge extending the CoFI inverse-modeling library beyond geoscience. The bigger thing wasn't the project — it was the people. Lab-mates who had three research interns and PhD offers from Japan, Singapore, Imperial College London before even arriving at ANU. A research associate who'd done her PhD at Berkeley and post-doc at Caltech, now quietly doing the work in Australia.",
+            quote: {
+              text: "Research outside India pays. Once you leave, the narrative flips.",
+              attrib: "Paraphrased from Aryan"
+            },
+            insights: [
+              {
+                id: 'exposure-not-talent',
+                text: "The gap between KGP's research-serious juniors and what's out there is mostly exposure, not talent.",
+                from: "Aryan's Canberra read"
+              }
+            ]
+          },
+          {
+            id: 'senior-sharing',
+            label: 'THE LOOP',
+            title: 'Becoming the senior who shares',
+            body: "He came back knowing two things. One: research outside India pays — once you leave, the narrative doesn't hold up. Two: the gap between KGP's research-serious juniors and what's out there is mostly exposure, not talent. Which is why he now forwards notes, shares rubrics, introduces juniors to seniors. The thing he got from Rishabh, he's trying to not gatekeep.",
+            insights: [
+              {
+                id: 'democratize',
+                text: "Democratising access to people like Rishabh solves half the problem for anyone from KGP.",
+                from: "Aryan's thesis for what he owes the next cohort"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+
+  prathamesh: {
+    meta: {
+      subject: 'Prathamesh Baisware', initials: 'P', subjectInitial: 'P',
+      interviewer: 'Ayush Agrawal', interviewerInitial: 'Ay',
+      date: 'Apr 18, 2026', duration: '40 min', turns: '140 turns',
+      tags: ['Bangalore housing', 'first move', 'Koramangala']
+    },
+    title: 'From a 2-sharing PG to a standalone Koramangala 1BHK, without paying brokerage',
+    dek: 'How one newcomer stopped scrolling 99acres and started asking owners directly — turning a 25-listing grind into a single right-fit deal.',
+    phases: [
+      {
+        id: 'pg-setup',
+        num: 'Phase 01',
+        title: 'The PG Setup',
+        sub: "The default first move to Bangalore — and why it stopped working after three months.",
+        moments: [
+          {
+            id: 'pg-fine',
+            label: 'THE SETUP',
+            title: 'PG was fine on paper, wrong in practice',
+            body: "Prathamesh moved to Bangalore into a 2-sharing PG close to the office — the classic first-move setup. Furniture, meals, company, everything handled. Two or three months in it stopped working. Not for any dramatic reason. The PG was well-equipped, but the environment around it didn't have the quiet and the space he actually needed after a workday. He wanted to be able to close a door.",
+            quote: {
+              text: "It was well furnished, well equipped. But in general, the environment was not that good.",
+              attrib: "Prathamesh Baisware"
+            },
+            insights: [
+              {
+                id: 'env-not-amenity',
+                text: "Environment beats amenities. PGs solve the physical problem, not the living one.",
+                from: "Why first moves in BLR often don't stick"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        id: 'hunt',
+        num: 'Phase 02',
+        title: 'The 1BHK Hunt',
+        sub: "Twenty-five listings in, two filter paths tried, nothing converting.",
+        moments: [
+          {
+            id: 'standalone-unlock',
+            label: 'THE SEARCH',
+            title: 'The 1BHK hunt that taught him what Koramangala actually wants',
+            body: "The first move was into a standalone building, not a gated society — cheaper, more character, and in a part of Koramangala that felt right on the walk-through. Clean, quiet, well-connected. One kilometre to office, one kilometre to badminton class. He lived there about a year before round two — first-floor issues, insects, the usual. This is the phase where most people burn weeks on 99acres and broker WhatsApp numbers. He'd tried both: subscription plans, brokerage-free aggregators at ₹199–₹299/month. 25 listings deep, nothing in Koramangala 4 or 5 was converting.",
+            stat: { n: '~25', l: 'listings tried before pivoting' },
+            insights: [
+              {
+                id: 'standalone-char',
+                text: "In the right pocket, standalone buildings beat gated societies on both character and price.",
+                from: "Prathamesh's filter takeaway"
+              },
+              {
+                id: 'area-first',
+                text: "Filter by area first, not by amenity. Koramangala 4/5, HSR, Indiranagar each have their own pockets.",
+                from: "What 25 failed listings taught"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        id: 'pivot-move',
+        num: 'Phase 03',
+        title: 'The Pivot Move',
+        sub: "From \"show me what's available\" to \"is this place open\".",
+        moments: [
+          {
+            id: 'ask-owner',
+            label: 'THE UNLOCK',
+            title: 'The pivot was asking owners, not platforms',
+            body: "One day he stopped filtering through services and just asked a homeowner directly if he could come look. That single switch — from \"show me what's available\" to \"is this place open\" — ended the search. He got a deal he'd never have surfaced through the portals. His takeaway for anyone moving to Bangalore: use the zero-brokerage WhatsApp aggregators as a long-tail feed, not a search engine. Filter by area first, then walk the block when you find a listing you like.",
+            quote: {
+              text: "Zero-brokerage aggregators are a feed, not a search engine. Filter by area, then just go walk the block.",
+              attrib: "Prathamesh Baisware"
+            },
+            insights: [
+              {
+                id: 'feed-not-search',
+                text: "Treat housing aggregators as a feed to scan, not a search engine to query.",
+                from: "The core Bangalore-housing insight"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+};
+
+// ==================================================
+// STATE
+// ==================================================
+let currentStory = 'aryan';
+let level = 'root';              // root | phase | moment | insight
+let currentPhaseId = null;
+let currentMomentId = null;
+let currentInsightId = null;
+const saved = new Set();
+
+const $ = (id) => document.getElementById(id);
+const layers = {
+  root: $('layer-root'),
+  phase: $('layer-phase'),
+  moment: $('layer-moment'),
+  insight: $('layer-insight')
+};
+
+// ==================================================
+// HELPERS
+// ==================================================
+function S() { return stories[currentStory]; }
+function currentPhase() { return S().phases.find(p => p.id === currentPhaseId); }
+function currentMoment() { const p = currentPhase(); return p && p.moments.find(m => m.id === currentMomentId); }
+function currentInsight() { const m = currentMoment(); return m && m.insights.find(i => i.id === currentInsightId); }
+
+function esc(s) {
+  return String(s).replace(/[&<>"']/g, c => ({
+    '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
+  }[c]));
+}
+
+// ==================================================
+// RENDERERS
+// ==================================================
+function renderRoot() {
+  const s = S();
+  const m = s.meta;
+  const chip = `${m.subject.split(' ')[0]} × ${m.interviewer.split(' ')[0]} · ${m.date} · ${m.duration}`;
+
+  const phaseCards = s.phases.map((p) => `
+    <div class="phase-card" data-phase="${p.id}" tabindex="0" role="button" aria-label="${esc(p.title)}">
+      <span class="phase-pulse" aria-hidden="true"></span>
+      <div class="phase-num">${esc(p.num)}</div>
+      <div class="phase-title">${esc(p.title)}</div>
+      <div class="phase-sub">${esc(p.sub)}</div>
+      <div class="phase-foot">
+        <span>${p.moments.length} moment${p.moments.length > 1 ? 's' : ''}</span>
+        <span class="arr">tap to enter →</span>
+      </div>
+    </div>
+  `).join('');
+
+  layers.root.innerHTML = `
+    <div class="root-wrap">
+      <div class="root-meta">
+        <span class="avs">
+          <span class="av">${esc(m.subjectInitial)}</span>
+          <span class="av">${esc(m.interviewerInitial)}</span>
+        </span>
+        ${esc(chip)}
+      </div>
+      <h1 class="root-title">${esc(s.title)}</h1>
+      <p class="root-dek">${esc(s.dek)}</p>
+      <div class="phases">
+        ${s.phases.length > 1 ? '<div class="phase-flow" aria-hidden="true"></div>' : ''}
+        ${phaseCards}
+      </div>
+    </div>
+  `;
+
+  layers.root.querySelectorAll('.phase-card').forEach(el => {
+    const h = (e) => { e.stopPropagation(); enterPhase(el.dataset.phase); };
+    el.addEventListener('click', h);
+    el.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); h(e); } });
+  });
+}
+
+function renderPhase() {
+  const p = currentPhase(); if (!p) return;
+  const moments = p.moments.map((m, i) => {
+    const insCount = (m.insights || []).length;
+    const previewSentence = m.body.split(/[.!?]/)[0] + '.';
+    return `
+      <div class="moment-card" data-moment="${m.id}" tabindex="0" role="button" aria-label="${esc(m.title)}">
+        <div class="moment-num">${String(i+1).padStart(2,'0')}</div>
+        <div class="m-body">
+          <div class="m-label">${esc(m.label)}</div>
+          <div class="m-title">${esc(m.title)}</div>
+          <div class="m-prev">
+            ${esc(previewSentence)}
+            ${insCount ? `<div class="ins-hint">${insCount} insight${insCount > 1 ? 's' : ''} inside</div>` : ''}
+          </div>
+        </div>
+        <div class="m-arrow" aria-hidden="true">›</div>
+      </div>
+    `;
+  }).join('');
+
+  layers.phase.innerHTML = `
+    <div class="phase-wrap">
+      <div class="phase-header">
+        <div class="lbl">${esc(p.num)}</div>
+        <h2>${esc(p.title)}</h2>
+        <p>${esc(p.sub)}</p>
+      </div>
+      <div class="moments-flow">${moments}</div>
+    </div>
+  `;
+
+  layers.phase.querySelectorAll('.moment-card').forEach(el => {
+    const h = (e) => { e.stopPropagation(); enterMoment(el.dataset.moment); };
+    el.addEventListener('click', h);
+    el.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); h(e); } });
+  });
+}
+
+function renderMoment() {
+  const m = currentMoment(); if (!m) return;
+
+  let feature = '';
+  if (m.quote) {
+    feature = `
+      <blockquote class="moment-quote">
+        "${esc(m.quote.text)}"
+        <span class="attrib">— ${esc(m.quote.attrib)}</span>
+      </blockquote>
+    `;
+  }
+  const statBlock = m.stat ? `
+    <div class="moment-stat">
+      <span class="n">${esc(m.stat.n)}</span>
+      <span class="l">${esc(m.stat.l)}</span>
+    </div>
+  ` : '';
+
+  const insights = (m.insights && m.insights.length) ? `
+    <div class="insight-branches">
+      <div class="hdr">${m.insights.length} insight${m.insights.length > 1 ? 's' : ''} extracted</div>
+      ${m.insights.map(i => `
+        <div class="insight-chip" data-insight="${i.id}" tabindex="0" role="button" aria-label="${esc(i.text)}">
+          <div class="ic-text">${esc(i.text)}</div>
+          <span class="ic-arrow">zoom in →</span>
+        </div>
+      `).join('')}
+    </div>
+  ` : '';
+
+  const saveId = `mom-${currentPhaseId}-${m.id}`;
+  const isSaved = saved.has(saveId);
+
+  layers.moment.innerHTML = `
+    <div class="moment-wrap">
+      <div class="moment-label-big">${esc(m.label)}</div>
+      <h2 class="moment-title-big">${esc(m.title)}</h2>
+      <p class="moment-body-text">${esc(m.body)}</p>
+      ${feature}
+      ${statBlock}
+      ${insights}
+      <div class="moment-inline-actions">
+        <button data-act="ask">Ask about this moment</button>
+        <button class="save ${isSaved ? 'saved' : ''}" data-act="save" data-save-id="${saveId}">
+          ${isSaved ? '✓ Saved' : 'Save to kit'}
+        </button>
+      </div>
+    </div>
+  `;
+
+  layers.moment.querySelectorAll('.insight-chip').forEach(el => {
+    const h = (e) => { e.stopPropagation(); enterInsight(el.dataset.insight); };
+    el.addEventListener('click', h);
+    el.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); h(e); } });
+  });
+  layers.moment.querySelectorAll('.moment-inline-actions button').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const act = btn.dataset.act;
+      if (act === 'save') {
+        const id = btn.dataset.saveId;
+        if (saved.has(id)) { saved.delete(id); btn.classList.remove('saved'); btn.textContent = 'Save to kit'; }
+        else { saved.add(id); btn.classList.add('saved'); btn.textContent = '✓ Saved'; }
+      } else if (act === 'ask') {
+        openAskToast(`Ask about: "${m.title}"`);
+      }
+    });
+  });
+}
+
+function renderInsight() {
+  const i = currentInsight(); if (!i) return;
+  const saveId = `ins-${currentPhaseId}-${currentMomentId}-${i.id}`;
+  const isSaved = saved.has(saveId);
+  layers.insight.innerHTML = `
+    <div class="insight-wrap">
+      <div class="insight-mark">"</div>
+      <div class="insight-text-big">${esc(i.text)}</div>
+      <div class="insight-from">${esc(i.from)}</div>
+      <div class="insight-actions">
+        <button class="insight-action ${isSaved ? 'saved' : ''}" data-act="save-insight" data-save-id="${saveId}">
+          ${isSaved ? '✓ Saved to kit' : 'Save this insight'}
+        </button>
+        <button class="insight-action secondary" data-act="ask-insight">Ask about this</button>
+      </div>
+    </div>
+  `;
+
+  layers.insight.querySelectorAll('.insight-action').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (btn.dataset.act === 'save-insight') {
+        const id = btn.dataset.saveId;
+        if (saved.has(id)) { saved.delete(id); btn.classList.remove('saved'); btn.textContent = 'Save this insight'; }
+        else { saved.add(id); btn.classList.add('saved'); btn.textContent = '✓ Saved to kit'; }
+      } else {
+        openAskToast(`Explore insight further`);
+      }
+    });
+  });
+}
+
+// ==================================================
+// ASK STUB (prototype only)
+// ==================================================
+function openAskToast(msg) {
+  const t = document.createElement('div');
+  t.textContent = msg;
+  Object.assign(t.style, {
+    position: 'fixed', bottom: '90px', left: '50%', transform: 'translateX(-50%)',
+    background: 'var(--ink)', color: '#fff',
+    fontFamily: 'var(--sans)', fontWeight: 500, fontSize: '13px',
+    padding: '10px 16px', borderRadius: '10px',
+    boxShadow: '0 10px 30px rgba(0,0,0,0.25)',
+    zIndex: 200, opacity: 0, transition: 'opacity 0.2s ease'
+  });
+  document.body.appendChild(t);
+  requestAnimationFrame(() => { t.style.opacity = 1; });
+  setTimeout(() => { t.style.opacity = 0; setTimeout(() => t.remove(), 300); }, 1800);
+}
+
+// ==================================================
+// LAYER TRANSITIONS
+// ==================================================
+function showLayer(name, direction) {
+  // direction: 'in' (zooming in) | 'out' (zooming out)
+  Object.entries(layers).forEach(([n, el]) => {
+    if (n === name) {
+      el.classList.remove('flying-out-up', 'flying-out-down', 'active');
+      if (direction === 'in') el.classList.add('flying-out-down');
+      else if (direction === 'out') el.classList.add('flying-out-up');
+      void el.offsetWidth;
+      requestAnimationFrame(() => {
+        el.classList.remove('flying-out-up', 'flying-out-down');
+        el.classList.add('active');
+        el.scrollTop = 0;
+      });
+    } else {
+      // outgoing layers
+      if (el.classList.contains('active')) {
+        el.classList.remove('active');
+        el.classList.add(direction === 'in' ? 'flying-out-up' : 'flying-out-down');
+        // cleanup
+        setTimeout(() => el.classList.remove('flying-out-up', 'flying-out-down'), 450);
+      } else {
+        el.classList.remove('active');
+      }
+    }
+  });
+}
+
+function goLevel(newLevel, direction) {
+  level = newLevel;
+  if (newLevel === 'root') renderRoot();
+  else if (newLevel === 'phase') renderPhase();
+  else if (newLevel === 'moment') renderMoment();
+  else if (newLevel === 'insight') renderInsight();
+  showLayer(newLevel, direction);
+  updateCrumb();
+  updateFloatAsk();
+  updateBackChev();
+}
+
+function enterPhase(id) { currentPhaseId = id; goLevel('phase', 'in'); }
+function enterMoment(id) { currentMomentId = id; goLevel('moment', 'in'); }
+function enterInsight(id) { currentInsightId = id; goLevel('insight', 'in'); }
+
+function goUp() {
+  if (level === 'insight') { currentInsightId = null; goLevel('moment', 'out'); }
+  else if (level === 'moment') { currentMomentId = null; goLevel('phase', 'out'); }
+  else if (level === 'phase') { currentPhaseId = null; goLevel('root', 'out'); }
+}
+
+function goToLevel(target) {
+  if (target === 'root') { currentPhaseId = null; currentMomentId = null; currentInsightId = null; goLevel('root', 'out'); }
+  else if (target === 'phase') { currentMomentId = null; currentInsightId = null; goLevel('phase', 'out'); }
+  else if (target === 'moment') { currentInsightId = null; goLevel('moment', 'out'); }
+}
+
+// ==================================================
+// SIBLING NAVIGATION
+// ==================================================
+function siblingNav(dir) {
+  if (level === 'phase') {
+    const s = S();
+    const idx = s.phases.findIndex(p => p.id === currentPhaseId);
+    const next = idx + dir;
+    if (next < 0 || next >= s.phases.length) return;
+    currentPhaseId = s.phases[next].id;
+    renderPhase(); showLayer('phase', 'in'); updateCrumb(); updateFloatAsk();
+  } else if (level === 'moment') {
+    const p = currentPhase();
+    const idx = p.moments.findIndex(m => m.id === currentMomentId);
+    const next = idx + dir;
+    if (next < 0 || next >= p.moments.length) return;
+    currentMomentId = p.moments[next].id;
+    renderMoment(); showLayer('moment', 'in'); updateCrumb(); updateFloatAsk();
+  } else if (level === 'insight') {
+    const m = currentMoment();
+    const idx = m.insights.findIndex(i => i.id === currentInsightId);
+    const next = idx + dir;
+    if (next < 0 || next >= m.insights.length) return;
+    currentInsightId = m.insights[next].id;
+    renderInsight(); showLayer('insight', 'in'); updateCrumb(); updateFloatAsk();
+  }
+}
+
+// ==================================================
+// BREADCRUMB
+// ==================================================
+function updateCrumb() {
+  const crumb = $('crumb');
+  const s = S();
+  const items = [{ label: `${s.meta.subject.split(' ')[0]}'s path`, target: 'root' }];
+  if (currentPhaseId) {
+    const p = s.phases.find(x => x.id === currentPhaseId);
+    items.push({ label: p.title, target: 'phase' });
+  }
+  if (currentMomentId) {
+    const p = currentPhase();
+    const m = p.moments.find(x => x.id === currentMomentId);
+    items.push({ label: m.title, target: 'moment' });
+  }
+  if (currentInsightId) {
+    items.push({ label: 'insight', target: 'insight' });
+  }
+  crumb.innerHTML = items.map((it, i) => {
+    const cur = i === items.length - 1;
+    return `<span class="c-item ${cur ? 'current' : ''}" data-target="${it.target}">${esc(it.label)}</span>${
+      i < items.length - 1 ? '<span class="c-sep">›</span>' : ''
+    }`;
+  }).join('');
+  crumb.querySelectorAll('.c-item').forEach(el => {
+    if (el.classList.contains('current')) return;
+    el.addEventListener('click', (e) => { e.stopPropagation(); goToLevel(el.dataset.target); });
+  });
+}
+
+// ==================================================
+// FLOAT ASK + BACK CHEV
+// ==================================================
+function updateFloatAsk() {
+  const label = $('askLabel');
+  const s = S();
+  const name = s.meta.subject.split(' ')[0];
+  if (level === 'root') label.textContent = `Ask anything about ${name}'s path`;
+  else if (level === 'phase') label.textContent = `Ask about "${currentPhase().title}"`;
+  else if (level === 'moment') label.textContent = `Ask about this moment`;
+  else if (level === 'insight') label.textContent = `Explore this insight`;
+}
+
+function updateBackChev() {
+  const chev = $('backChev');
+  if (level === 'root') chev.classList.remove('show');
+  else chev.classList.add('show');
+}
+
+$('backChev').addEventListener('click', (e) => {
+  e.stopPropagation();
+  goUp();
+});
+
+// ==================================================
+// GESTURES
+// ==================================================
+// Tap on layer background (empty canvas around the content) -> zoom out
+$('canvas').addEventListener('click', (e) => {
+  const isBg = e.target === $('canvas')
+            || (e.target.classList && e.target.classList.contains('layer'));
+  if (isBg) goUp();
+});
+
+// Keyboard
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') { if (level !== 'root') goUp(); }
+  else if (e.key === 'ArrowUp') { if (level !== 'root') { e.preventDefault(); goUp(); } }
+  else if (e.key === 'ArrowDown') {
+    // zoom into first child if there is one
+    if (level === 'root') {
+      const p = S().phases[0]; if (p) enterPhase(p.id);
+    } else if (level === 'phase') {
+      const m = currentPhase().moments[0]; if (m) enterMoment(m.id);
+    } else if (level === 'moment') {
+      const m = currentMoment();
+      if (m.insights && m.insights[0]) enterInsight(m.insights[0].id);
+    }
+  }
+  else if (e.key === 'ArrowRight') { e.preventDefault(); siblingNav(+1); }
+  else if (e.key === 'ArrowLeft') { e.preventDefault(); siblingNav(-1); }
+});
+
+// Touch gestures
+let touchStart = null;
+document.addEventListener('touchstart', (e) => {
+  if (e.touches.length !== 1) { touchStart = null; return; }
+  touchStart = { x: e.touches[0].clientX, y: e.touches[0].clientY, t: Date.now() };
+}, { passive: true });
+
+document.addEventListener('touchend', (e) => {
+  if (!touchStart) return;
+  const t = e.changedTouches[0];
+  const dx = t.clientX - touchStart.x;
+  const dy = t.clientY - touchStart.y;
+  const dt = Date.now() - touchStart.t;
+  const absX = Math.abs(dx), absY = Math.abs(dy);
+  touchStart = null;
+  if (dt > 600) return;
+  if (absY > absX && absY > 70) {
+    if (dy > 0) { if (level !== 'root') goUp(); }           // swipe down -> zoom out
+    else {                                                   // swipe up -> zoom in (first child)
+      if (level === 'root') { const p = S().phases[0]; if (p) enterPhase(p.id); }
+      else if (level === 'phase') { const m = currentPhase().moments[0]; if (m) enterMoment(m.id); }
+      else if (level === 'moment') { const m = currentMoment(); if (m.insights && m.insights[0]) enterInsight(m.insights[0].id); }
+    }
+  } else if (absX > absY && absX > 70) {
+    siblingNav(dx > 0 ? -1 : +1); // right swipe -> prev (like Stories)
+  }
+}, { passive: true });
+
+// Story switcher
+$('switcher').addEventListener('click', (e) => {
+  if (e.target.tagName !== 'BUTTON') return;
+  const id = e.target.dataset.story;
+  if (id === currentStory) return;
+  currentStory = id;
+  currentPhaseId = null; currentMomentId = null; currentInsightId = null;
+  level = 'root';
+  $('switcher').querySelectorAll('button').forEach(b => b.classList.toggle('active', b.dataset.story === id));
+  renderRoot();
+  showLayer('root', 'out');
+  updateCrumb(); updateFloatAsk(); updateBackChev();
+});
+
+// Float ask
+$('floatAsk').addEventListener('click', (e) => {
+  e.stopPropagation();
+  openAskToast($('askLabel').textContent);
+});
+
+// ==================================================
+// INIT
+// ==================================================
+renderRoot();
+layers.root.classList.add('active');
+updateCrumb();
+updateFloatAsk();
+updateBackChev();
+
+// First-visit hint
+if (!localStorage.getItem('wz-canvas-v4-hinted')) {
+  setTimeout(() => {
+    $('hint').classList.add('show');
+    setTimeout(() => $('hint').classList.remove('show'), 5000);
+    localStorage.setItem('wz-canvas-v4-hinted', '1');
+  }, 900);
+}
+</script>
+</body>
+</html>
