@@ -448,6 +448,9 @@ body{
   <div class="switcher" id="switcher">
     <button data-story="aryan" class="active">Aryan</button>
     <button data-story="prathamesh">Prathamesh</button>
+    <button data-story="parul">Parul</button>
+    <button data-story="shubhankar">Shubhankar</button>
+    <button data-story="subham">Subham</button>
   </div>
 </header>
 
@@ -586,7 +589,146 @@ const stories = {
       }
     ]
   }
-};
+  },
+
+  parul: {
+    meta:{
+      subject:'Parul Verma', subjectInitial:'P',
+      interviewer:'Rajit Singh', interviewerInitial:'R',
+      date:'Apr 20, 2026', duration:'35 min', turns:'75 turns'
+    },
+    title:"How Parul scored 760 after stopping and restarting prep multiple times",
+    hook:"A working professional's playbook for maintaining momentum through interrupted GMAT prep cycles — and why starting over is not failure.",
+    before:"Working professional juggling job with multiple GMAT attempts; motivation dropping after restarts",
+    after:"GMAT 760 (Q50 V44) after final disciplined prep cycle; mentoring others on staying persistent",
+    moments:[
+      {
+        id:'why-interrupted', label:'The Pattern',
+        title:'Why GMAT prep gets interrupted (and why Parul kept restarting)',
+        body:"Parul came to the session as a working professional -- the exact demographic most likely to abandon GMAT prep mid-cycle. Job demands, life events, motivation dips. She had attempted the GMAT multiple times, each restart carrying the emotional weight of starting over. This is the story of how she broke that pattern by stopping to ask: is this failure, or data?",
+        drops:[
+          {id:'restart-data', label:"Restarts are data points, not setbacks", body:"Each failed attempt teaches what to stop doing. Document it. Use it to change strategy on the next cycle.", from:"Core insight"}
+        ]
+      },
+      {
+        id:'metrics-not-motivation', label:'The Shift',
+        title:'How tracking metrics replaced motivation',
+        body:"Rather than rely on willpower, Parul shifted to tracking prep metrics: hours logged, mock scores, weak areas flagged. She stopped asking am I feeling motivated and started asking what do the metrics show I should do next. This external anchor made restarts feel less like failures and more like data-driven course corrections.",
+        stat:{n:"3+", l:"restart cycles tracked systematically"},
+        drops:[
+          {id:'metrics-beat-motivation', label:"Metrics beat motivation every time", body:"Working professionals cannot rely on inspiration. Build tracking systems and make decisions based on data, not feelings.", from:"The discipline layer"}
+        ]
+      },
+      {
+        id:'structure-not-inspiration', label:'The Victory',
+        title:'The 760 came from structure, not inspiration',
+        body:"The final cycle was not longer or harder -- it was more systematic. Daily prep blocks, weekly mock reviews, clear Q/V targets. No motivation required. Just discipline. When she hit Q50 V44, it was not a surprise.",
+        stat:{n:"760", l:"Final score (Q50, V44)"},
+        drops:[
+          {id:'discipline-scales', label:"Discipline scales, motivation does not", body:"Build the system first. The score follows. You do not get burnout on a system you trust.", from:"Post-760 reflection"}
+        ]
+      }
+    ]
+  },
+
+  shubhankar: {
+    meta:{
+      subject:'Shubhankar Mihir Seth', subjectInitial:'S',
+      interviewer:'MBA Coach', interviewerInitial:'H',
+      date:'Apr 19, 2026', duration:'45 min', turns:'95 turns'
+    },
+    title:"From a mountain village school to Stanford: GMAT 800 and MBA pivot",
+    hook:"An IIT startup founder becomes a Stanford GSB student -- and how a perfect GMAT score was the unlock.",
+    before:"Mountain village school with barely any electricity; IIT startup founder facing uncertain outcome",
+    after:"Stanford GSB student in the same halls as Netflix, Google, LinkedIn founders",
+    moments:[
+      {
+        id:'village-to-iit', label:'The Origin',
+        title:'Mountain village to IIT: the electricity gap',
+        body:"Shubhankar grew up in a village where electricity was barely available. He made it to IIT Mumbai, a filter school. But becoming an entrepreneur at IIT was the real pivot point. The gap was about access itself.",
+        drops:[
+          {id:'starting-point', label:"The starting point does not determine the destination", body:"Mountain village to Stanford GSB is not luck. It is a sequence of decisions to level up each time.", from:"Core insight"}
+        ]
+      },
+      {
+        id:'iit-founder', label:'The Startup',
+        title:'Becoming an entrepreneur while still an undergrad',
+        body:"He founded a venture at IIT -- high-risk, high-learning. By the time he sat for his GMAT attempts, he had real entrepreneurial scars. That experience was the reason he had the discipline to execute a perfect score.",
+        stat:{n:"800", l:"Perfect GMAT score"},
+        drops:[
+          {id:'founder-discipline', label:"Perfect GMAT scores signal founder-level execution", body:"For entrepreneurs, a high GMAT is proof you can execute a multi-month campaign to 100% completion under pressure.", from:"Why his 800 mattered"}
+        ]
+      },
+      {
+        id:'gmat-unlock', label:'The Proof',
+        title:'Why 800 GMAT mattered more than just a score',
+        body:"A perfect GMAT score from someone coming out of a startup signals: founder-level discipline, English fluency from zero baseline, ability to execute flawlessly under pressure. Stanford saw 800 and saw someone who had already failed and learned.",
+        drops:[
+          {id:'gmat-signal', label:"Test scores are access signals, not achievement trophies", body:"A perfect score from a founder says I can execute. That is why it opened Stanford's door.", from:"Reframing test prep"}
+        ]
+      },
+      {
+        id:'stanford-halls', label:'The Unlock',
+        title:'What changes when you walk the halls of change-makers',
+        body:"Shubhankar entered Stanford with classmates from Netflix, Google, LinkedIn. For someone from a village with no power, this cohort density and mission clarity is not background -- it is the entire difference. The people in the room were already founders, executives, builders.",
+        quote:{text:"Walking the quarters where founders of Netflix, Google, LinkedIn have walked -- that is incredibly empowering", attrib:"Shubhankar"},
+        drops:[
+          {id:'cohort-matters', label:"Cohort density matters more than individual excellence", body:"Your MBA cohort becomes your accelerator. The people in the room are the entire story.", from:"Why Stanford changed everything"}
+        ]
+      }
+    ]
+  },
+
+  subham: {
+    meta:{
+      subject:'Subham Rajgaria', subjectInitial:'S',
+      interviewer:'Swathaman', interviewerInitial:'Sw',
+      date:'Apr 21, 2026', duration:'30 min', turns:'65 turns'
+    },
+    title:"How Subham went from 710 to 760 by restarting with structure",
+    hook:"One professional transformation: what changed between a 15-day panic attempt and 760 was not willpower -- it was preparation discipline.",
+    before:"Rushed 710 attempt with 15 days of mock practice; thought there was no time for GMAT",
+    after:"Committed 10-month GMAT prep cycle ending in 760; structured partnership with coach",
+    moments:[
+      {
+        id:'rushed-attempt', label:'The Diagnosis',
+        title:'Why first attempt was always going to fail',
+        body:"Subham's first GMAT attempt came with 15 days of mock practice while joining Westbridge. The 710 score was inevitable. A 15-day attempt does not build sustained skill. It is a diagnostic, not a legitimate effort.",
+        stat:{n:"710", l:"First attempt (15-day panic)"},
+        drops:[
+          {id:'rushed-lesson', label:"A rushed attempt teaches you what not to do", body:"The 710 was not a setback. It was a 15-day diagnostic. Real prep started only after accepting that 15 days does not equal GMAT readiness.", from:"The diagnostic reframe"}
+        ]
+      },
+      {
+        id:'pause-restart', label:'The Wait',
+        title:'The critical decision: waiting for the right moment to try again',
+        body:"After the first attempt, Subham did not immediately retake. He let GMAT sit. The win came from not panicking into a second rushed attempt. It came from waiting until October 2021, nearly a year later, when he was ready to commit properly.",
+        stat:{n:"10 months", l:"Duration of structured preparation"},
+        drops:[
+          {id:'patience-not-panic', label:"Waiting for the right moment is a strength, not procrastination", body:"The 760 came from patience and structure, not from retaking immediately. Know when you are not ready.", from:"The patience principle"}
+        ]
+      },
+      {
+        id:'coach-system', label:'The Partnership',
+        title:'How a coach became the accountability system that worked',
+        body:"Subham reached out to a GMAT coach (Swathaman) in October 2021. The coach built a tracking system, milestone reviews, and strategic weak-area work. Week-to-week visibility meant Subham could adjust based on data, not on how motivated he felt.",
+        quote:{text:"A coach is worth it if they build a milestone system, not just teach content", attrib:"Subham"},
+        drops:[
+          {id:'coach-system-value', label:"A coach is worth it if they build a milestone system", body:"Accountability systems scale better than willpower. They create visibility that transforms panic into progress.", from:"Why coaching worked"}
+        ]
+      },
+      {
+        id:'consistency-score', label:'The Victory',
+        title:'The score came from consistency, not cramming',
+        body:"Over 10 months with a coach, hitting specific milestones, Subham's prep was visible week-to-week. The 760 was not a surprise at the end -- it was the inevitable result of sustained, coached discipline.",
+        stat:{n:"760", l:"Final score (50-point jump)"},
+        drops:[
+          {id:'consistent-systems', label:"When you build the system first, the score follows", body:"You do not just get a higher number. You get the confidence that you can execute long-term commitments.", from:"Post-760 reflection"}
+        ]
+      }
+    ]
+  }
+;
 
 // ==========================
 // STATE
